@@ -50,19 +50,25 @@ public class AuthController {
             return "Email already exists";
         }
 
+        String role = request.getRole() == null ? "" : request.getRole().toUpperCase();
+        if (!role.equals("CLIENT") && !role.equals("EMPLOYEE") && !role.equals("SUPERVISOR")) {
+            return "Invalid role";
+        }
+
         User user = new User();
         user.setUsername(request.getUsername());
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            user.setStatus(User.UserStatus.valueOf(request.getStatus().toLowerCase()));
+        }
 
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         user.setPasswordHash(hashedPassword);
 
         User savedUser = userRepository.save(user);
-
-        String role = request.getRole().toUpperCase();
 
         if (role.equals("CLIENT")) {
             Client client = new Client();
@@ -71,13 +77,14 @@ public class AuthController {
         } else if (role.equals("EMPLOYEE")) {
             Employee employee = new Employee();
             employee.setUser(savedUser);
+            employee.setDescription(request.getDescription() == null || request.getDescription().isBlank()
+                    ? "Employee"
+                    : request.getDescription());
             employeeRepository.save(employee);
         } else if (role.equals("SUPERVISOR")) {
             Supervisor supervisor = new Supervisor();
             supervisor.setUser(savedUser);
             supervisorRepository.save(supervisor);
-        } else {
-            return "Invalid role";
         }
 
         return "Registration successful";
@@ -89,7 +96,7 @@ public class AuthController {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElse(null);
 
-        if (user == null) {
+        if (user == null || user.getStatus() == User.UserStatus.inactive) {
             return "Invalid username or password";
         }
 

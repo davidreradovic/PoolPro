@@ -11,7 +11,7 @@ public class Item {
     @Column(name = "id_item")
     private Integer idItem;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 45)
     private String title;
 
     @Column(nullable = false)
@@ -19,6 +19,9 @@ public class Item {
 
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
+
+    @Column(nullable = false, length = 45)
+    private String category;
 
     public Integer getIdItem() { return idItem; }
     public void setIdItem(Integer idItem) { this.idItem = idItem; }
@@ -28,4 +31,6 @@ public class Item {
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
     public BigDecimal getUnitPrice() { return unitPrice; }
     public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 }
