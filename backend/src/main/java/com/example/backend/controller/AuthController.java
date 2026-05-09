@@ -1,5 +1,6 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.AuthResponse;
 import com.example.backend.dto.LoginRequest;
 import com.example.backend.dto.RegisterRequest;
 import com.example.backend.entity.Client;
@@ -91,7 +92,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
+    public Object login(@RequestBody LoginRequest request) {
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElse(null);
@@ -109,6 +110,24 @@ public class AuthController {
             return "Invalid username or password";
         }
 
-        return "Login successful";
+        String role = "UNKNOWN";
+
+        if (clientRepository.existsByUser_IdUser(user.getIdUser())) {
+            role = "CLIENT";
+        } else if (employeeRepository.existsByUser_IdUser(user.getIdUser())) {
+            role = "EMPLOYEE";
+        } else if (supervisorRepository.existsByUser_IdUser(user.getIdUser())) {
+            role = "SUPERVISOR";
+        }
+
+        return new AuthResponse(
+                user.getIdUser(),
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                role,
+                "Login successful"
+        );
     }
 }

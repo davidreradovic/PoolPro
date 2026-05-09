@@ -4,4 +4,5 @@ import com.example.backend.entity.Supervisor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SupervisorRepository extends JpaRepository<Supervisor, Integer> {
+    boolean existsByUser_IdUser(Integer idUser);
 }
