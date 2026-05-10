@@ -1,5 +1,6 @@
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/BackendApplication.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/config/PasswordConfig.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/config/SecurityConfig.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/AuthController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/EmployeeController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ProjectController.java
@@ -40,3 +41,5 @@
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/SupervisorRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/TaskRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/UserRepository.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/security/JwtAuthenticationFilter.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/security/JwtService.java

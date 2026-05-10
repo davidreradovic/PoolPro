@@ -7,16 +7,18 @@ public class AuthResponse {
     private String lastName;
     private String email;
     private String role;
+    private String token;
     private String message;
 
     public AuthResponse(Integer idUser, String username, String firstName, String lastName,
-                        String email, String role, String message) {
+                        String email, String role, String token, String message) {
         this.idUser = idUser;
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.role = role;
+        this.token = token;
         this.message = message;
     }
 
@@ -26,5 +28,6 @@ public class AuthResponse {
     public String getLastName() { return lastName; }
     public String getEmail() { return email; }
     public String getRole() { return role; }
+    public String getToken() { return token; }
     public String getMessage() { return message; }
 }

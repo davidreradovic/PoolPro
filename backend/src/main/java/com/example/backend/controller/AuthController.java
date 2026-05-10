@@ -13,8 +13,8 @@ import com.example.backend.repository.SupervisorRepository;
 import com.example.backend.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-
+import com.example.backend.security.JwtService;
+import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:4200")
@@ -25,19 +25,22 @@ public class AuthController {
     private final EmployeeRepository employeeRepository;
     private final SupervisorRepository supervisorRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthController(
             UserRepository userRepository,
             ClientRepository clientRepository,
             EmployeeRepository employeeRepository,
             SupervisorRepository supervisorRepository,
-            BCryptPasswordEncoder passwordEncoder
+            BCryptPasswordEncoder passwordEncoder,
+            JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.clientRepository = clientRepository;
         this.employeeRepository = employeeRepository;
         this.supervisorRepository = supervisorRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/register")
@@ -120,6 +123,8 @@ public class AuthController {
             role = "SUPERVISOR";
         }
 
+        String token = jwtService.generateToken(user.getUsername(), role);
+
         return new AuthResponse(
                 user.getIdUser(),
                 user.getUsername(),
@@ -127,6 +132,7 @@ public class AuthController {
                 user.getLastName(),
                 user.getEmail(),
                 role,
+                token,
                 "Login successful"
         );
     }

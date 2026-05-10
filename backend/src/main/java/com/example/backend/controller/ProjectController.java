@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.backend.repository.TaskRepository;
 import com.example.backend.entity.Task;
 import java.util.List;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/projects")
 @CrossOrigin(origins = "http://localhost:4200")
@@ -34,6 +34,7 @@ public class ProjectController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SUPERVISOR')")
     public Object createProject(@RequestBody CreateProjectRequest request) {
 
         Client client = clientRepository.findById(request.getIdClient())
@@ -149,6 +150,7 @@ public class ProjectController {
                 .toList();
     }
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPERVISOR')")
     public String deleteProject(@PathVariable Integer id) {
 
         if (!projectRepository.existsById(id)) {

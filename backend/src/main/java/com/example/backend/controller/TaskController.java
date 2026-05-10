@@ -8,7 +8,7 @@ import com.example.backend.repository.EmployeeRepository;
 import com.example.backend.repository.ProjectRepository;
 import com.example.backend.repository.TaskRepository;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 @RestController
@@ -88,6 +88,7 @@ public class TaskController {
     }
 
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('SUPERVISOR')")
     public Object updateTaskStatus(
             @PathVariable Integer id,
             @RequestParam String status
@@ -107,6 +108,7 @@ public class TaskController {
         return taskRepository.save(task);
     }
     @PutMapping("/{taskId}/assign/{employeeId}")
+    @PreAuthorize("hasRole('SUPERVISOR')")
     public Object assignTaskToEmployee(
             @PathVariable Integer taskId,
             @PathVariable Integer employeeId
@@ -133,6 +135,7 @@ public class TaskController {
     }
 
     @PutMapping("/{taskId}/unassign")
+    @PreAuthorize("hasRole('SUPERVISOR')")
     public Object unassignTaskFromEmployee(@PathVariable Integer taskId) {
         Task task = taskRepository.findById(taskId).orElse(null);
 
@@ -147,6 +150,7 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPERVISOR')")
     public String deleteTask(@PathVariable Integer id) {
         if (!taskRepository.existsById(id)) {
             return "Task not found";
