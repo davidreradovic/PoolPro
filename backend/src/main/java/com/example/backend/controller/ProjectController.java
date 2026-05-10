@@ -8,7 +8,8 @@ import com.example.backend.repository.ClientRepository;
 import com.example.backend.repository.ProjectRepository;
 import com.example.backend.repository.SupervisorRepository;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.backend.repository.TaskRepository;
+import com.example.backend.entity.Task;
 import java.util.List;
 
 @RestController
@@ -19,15 +20,17 @@ public class ProjectController {
     private final ProjectRepository projectRepository;
     private final ClientRepository clientRepository;
     private final SupervisorRepository supervisorRepository;
-
+    private final TaskRepository taskRepository;
     public ProjectController(
             ProjectRepository projectRepository,
             ClientRepository clientRepository,
-            SupervisorRepository supervisorRepository
+            SupervisorRepository supervisorRepository,
+            TaskRepository taskRepository
     ) {
         this.projectRepository = projectRepository;
         this.clientRepository = clientRepository;
         this.supervisorRepository = supervisorRepository;
+        this.taskRepository = taskRepository;
     }
 
     @PostMapping
@@ -100,7 +103,51 @@ public class ProjectController {
 
         return projectRepository.save(project);
     }
+    @GetMapping("/{id}/tasks")
+    public Object getProjectTasks(@PathVariable Integer id) {
 
+        Project project = projectRepository.findById(id).orElse(null);
+
+        if (project == null) {
+            return "Project not found";
+        }
+
+        return taskRepository.findByProject_IdProject(id)
+                .stream()
+                .map(task -> {
+                    return java.util.Map.of(
+                            "idTask", task.getIdTask(),
+                            "title", task.getTitle(),
+                            "description", task.getDescription(),
+                            "status", task.getStatus(),
+                            "deadline", task.getDeadline(),
+                            "employee", task.getEmployee() == null ? "Not assigned" :
+                                    task.getEmployee().getUser().getFirstName() + " " +
+                                            task.getEmployee().getUser().getLastName()
+                    );
+                })
+                .toList();
+    }
+    @GetMapping("/client/{clientId}")
+    public Object getProjectsByClient(@PathVariable Integer clientId) {
+
+        Client client = clientRepository.findById(clientId).orElse(null);
+
+        if (client == null) {
+            return "Client not found";
+        }
+
+        return projectRepository.findByClient_IdClient(clientId)
+                .stream()
+                .map(project -> java.util.Map.of(
+                        "idProject", project.getIdProject(),
+                        "title", project.getTitle(),
+                        "description", project.getDescription(),
+                        "status", project.getStatus(),
+                        "createdAt", project.getCreatedAt()
+                ))
+                .toList();
+    }
     @DeleteMapping("/{id}")
     public String deleteProject(@PathVariable Integer id) {
 

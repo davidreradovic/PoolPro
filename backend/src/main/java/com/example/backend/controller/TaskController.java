@@ -106,6 +106,45 @@ public class TaskController {
 
         return taskRepository.save(task);
     }
+    @PutMapping("/{taskId}/assign/{employeeId}")
+    public Object assignTaskToEmployee(
+            @PathVariable Integer taskId,
+            @PathVariable Integer employeeId
+    ) {
+        Task task = taskRepository.findById(taskId).orElse(null);
+
+        if (task == null) {
+            return "Task not found";
+        }
+
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+
+        if (employee == null) {
+            return "Employee not found";
+        }
+
+        task.setEmployee(employee);
+
+        if (task.getStatus() == Task.TaskStatus.todo) {
+            task.setStatus(Task.TaskStatus.in_progress);
+        }
+
+        return taskRepository.save(task);
+    }
+
+    @PutMapping("/{taskId}/unassign")
+    public Object unassignTaskFromEmployee(@PathVariable Integer taskId) {
+        Task task = taskRepository.findById(taskId).orElse(null);
+
+        if (task == null) {
+            return "Task not found";
+        }
+
+        task.setEmployee(null);
+        task.setStatus(Task.TaskStatus.todo);
+
+        return taskRepository.save(task);
+    }
 
     @DeleteMapping("/{id}")
     public String deleteTask(@PathVariable Integer id) {

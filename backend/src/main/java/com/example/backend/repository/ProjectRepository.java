@@ -12,4 +12,5 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
     List<Project> findBySupervisor_IdSupervisor(Integer idSupervisor);
 
     List<Project> findByPublicProjectTrue();
+
 }
