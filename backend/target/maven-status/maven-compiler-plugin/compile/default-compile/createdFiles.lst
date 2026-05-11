@@ -14,6 +14,7 @@ com/example/backend/security/JwtService.class
 com/example/backend/entity/Task$TaskStatus.class
 com/example/backend/entity/Message.class
 com/example/backend/entity/Client.class
+com/example/backend/controller/MessageController.class
 com/example/backend/repository/TaskRepository.class
 com/example/backend/entity/User$UserStatus.class
 com/example/backend/entity/Project$ProjectStatus.class
@@ -21,6 +22,7 @@ com/example/backend/BackendApplication.class
 com/example/backend/entity/Order$OrderStatus.class
 com/example/backend/config/PasswordConfig.class
 com/example/backend/controller/TaskController.class
+com/example/backend/repository/MessageRepository.class
 com/example/backend/entity/Project.class
 com/example/backend/controller/UserController.class
 com/example/backend/entity/ItemReview.class

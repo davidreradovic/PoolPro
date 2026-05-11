@@ -41,6 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwtService.isTokenValid(token)) {
             String username = jwtService.extractUsername(token);
             String role = jwtService.extractRole(token);
+           // System.out.println("ROLE FROM TOKEN: " + role);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -48,6 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + role))
                     );
+           // System.out.println(authentication.getAuthorities());
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
