@@ -386,7 +386,7 @@ function AuthPage({ setPage }) {
     setErr(""); setLoading(true);
     try {
       const res = await apiFetch("/auth/login", { method: "POST", body: JSON.stringify({ username: form.username, password: form.password }) });
-      if (res && res.token) { login(res); setPage("home"); }
+     if (res && res.message === "Login successful") { login(res); setPage("home"); }
       else setErr(typeof res === "string" ? res : "Login failed");
     } catch { setErr("Server unavailable. Using demo mode."); }
     setLoading(false);
