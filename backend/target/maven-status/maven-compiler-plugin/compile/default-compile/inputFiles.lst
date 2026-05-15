@@ -8,6 +8,7 @@
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/MessageController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/OrderController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ProjectController.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ReviewController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/TaskController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/TestController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/UserController.java
@@ -44,6 +45,7 @@
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ClientRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/EmployeeRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ItemRepository.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ItemReviewRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/MessageRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/OrderComplaintRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/OrderHasItemRepository.java

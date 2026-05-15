@@ -32,6 +32,7 @@ com/example/backend/controller/UserController.class
 com/example/backend/entity/ItemReview.class
 com/example/backend/repository/ClientRepository.class
 com/example/backend/controller/ItemController.class
+com/example/backend/repository/ItemReviewRepository.class
 com/example/backend/entity/CartHasItemId.class
 com/example/backend/entity/OrderHasItem.class
 com/example/backend/repository/CartRepository.class
@@ -41,6 +42,7 @@ com/example/backend/entity/Task.class
 com/example/backend/entity/Item.class
 com/example/backend/entity/Photo.class
 com/example/backend/controller/CartController.class
+com/example/backend/controller/ReviewController.class
 com/example/backend/repository/CartHasItemRepository.class
 com/example/backend/repository/ItemRepository.class
 com/example/backend/entity/Cart.class
