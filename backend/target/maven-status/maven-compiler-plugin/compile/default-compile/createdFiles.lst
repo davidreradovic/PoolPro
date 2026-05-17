@@ -17,6 +17,9 @@ com/example/backend/entity/Task$TaskStatus.class
 com/example/backend/entity/Message.class
 com/example/backend/entity/Client.class
 com/example/backend/controller/MessageController.class
+com/example/backend/repository/TaskCommentRepository.class
+com/example/backend/repository/ProjectCommentRepository.class
+com/example/backend/controller/TaskCommentController.class
 com/example/backend/repository/OrderRepository.class
 com/example/backend/repository/TaskRepository.class
 com/example/backend/entity/User$UserStatus.class
@@ -46,6 +49,7 @@ com/example/backend/controller/ReviewController.class
 com/example/backend/repository/CartHasItemRepository.class
 com/example/backend/repository/ItemRepository.class
 com/example/backend/entity/Cart.class
+com/example/backend/controller/ProjectCommentController.class
 com/example/backend/entity/User.class
 com/example/backend/dto/RegisterRequest.class
 com/example/backend/entity/OrderHasItemId.class
@@ -60,3 +64,5 @@ com/example/backend/entity/ItemPhoto.class
 com/example/backend/entity/OrderComplaint.class
 com/example/backend/repository/EmployeeRepository.class
 com/example/backend/dto/CreateProjectRequest.class
+com/example/backend/controller/ItemCommentController.class
+com/example/backend/repository/ItemCommentRepository.class
