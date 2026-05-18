@@ -8,6 +8,7 @@ import com.example.backend.repository.ItemRepository;
 import com.example.backend.repository.UserRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,10 +34,18 @@ public class ItemCommentController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public Object createComment(@RequestBody Map<String, Object> request) {
+    public Object createComment(@RequestBody Map<String, Object> request, Authentication authentication) {
+
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+            return "User not found";
+        }
 
         Integer itemId = (Integer) request.get("itemId");
-        Integer userId = (Integer) request.get("userId");
+        //Integer userId = (Integer) request.get("userId");
         String content = (String) request.get("content");
 
         Integer replyId = null;
@@ -53,10 +62,6 @@ public class ItemCommentController {
             return "Item not found";
         }
 
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return "User not found";
-        }
 
         ItemComment reply = null;
         if (replyId != null) {

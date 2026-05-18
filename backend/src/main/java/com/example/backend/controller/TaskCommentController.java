@@ -35,11 +35,13 @@ public class TaskCommentController {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public Object createComment(
-            @RequestBody Map<String, Object> request
+            @RequestBody Map<String, Object> request, Authentication authentication
     ) {
 
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElse(null);
         Integer taskId = (Integer) request.get("taskId");
-        Integer userId = (Integer) request.get("userId");
+      //  Integer userId = (Integer) request.get("userId");
 
         Integer replyId = null;
 
@@ -59,7 +61,7 @@ public class TaskCommentController {
             return "Task not found";
         }
 
-        User user = userRepository.findById(userId).orElse(null);
+        //User user = userRepository.findById(userId).orElse(null);
 
         if (user == null) {
             return "User not found";

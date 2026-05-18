@@ -34,8 +34,13 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/item-comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/task-comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/project-comments/**").permitAll()
+
                         .anyRequest().authenticated()
+                
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
