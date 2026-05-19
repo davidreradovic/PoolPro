@@ -9,7 +9,9 @@ public class Supervisor {
     @Column(name = "id_supervisor")
     private Integer idSupervisor;
 
-    @OneToOne
+    // DODATO: cascade = CascadeType.ALL govori Hibernate-u da sačuva User-a 
+    // u isto vreme kada čuva i Supervisor-a
+    @OneToOne(cascade = CascadeType.ALL) 
     @MapsId
     @JoinColumn(name = "id_supervisor")
     private User user;

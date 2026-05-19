@@ -7,6 +7,7 @@ import com.example.backend.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional; // Dodat uvoz za transakcije
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -24,7 +25,9 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+@Transactional
+public void run(String... args) {
+    try {
         // Ako u bazi nema nijednog registrovanog supervisora, kreiraj inicijalnog šefa
         if (supervisorRepository.count() == 0) {
 
@@ -37,12 +40,20 @@ public class DataInitializer implements CommandLineRunner {
                 user.setEmail("supervisor@poolpro.com");
                 user.setPhone("065123456");
                 user.setStatus(User.UserStatus.active);
-                user.setPasswordHash(passwordEncoder.encode("SupervisorSifra123!")); // Promeni šifru po želji
+                user.setPasswordHash(passwordEncoder.encode("SupervisorSifra123!"));
 
+                // 1. Čuvamo korisnika
                 User savedUser = userRepository.save(user);
 
+                // 2. Kreiramo novog supervisora
                 Supervisor supervisor = new Supervisor();
                 supervisor.setUser(savedUser);
+                
+                // OVDE PROVERI: Da li tvoj savedUser.getIdUser() vraća Integer ili Long?
+                // Ako supervisor koristi Integer, a User koristi Long (ili obrnuto), ovde nastaje problem.
+                supervisor.setIdSupervisor(savedUser.getIdUser()); 
+
+                // 3. Čuvamo supervisora
                 supervisorRepository.save(supervisor);
 
                 System.out.println(">>> INICIJALNI SUPERVISOR JE USPEŠNO KREIRAN U BAZI <<<");
@@ -50,5 +61,11 @@ public class DataInitializer implements CommandLineRunner {
                 System.out.println("Password: SupervisorSifra123!");
             }
         }
+    } catch (Exception e) {
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.out.println("GREŠKA U DATA INITIALIZERU: " + e.getMessage());
+        e.printStackTrace();
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     }
+}
 }
