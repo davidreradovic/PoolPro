@@ -38,9 +38,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/item-comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/task-comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/project-comments/**").permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/item-photos/**"
+                        ).permitAll()
 
                         .anyRequest().authenticated()
-                
+
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

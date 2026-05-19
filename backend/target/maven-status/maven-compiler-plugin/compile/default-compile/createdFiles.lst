@@ -18,10 +18,13 @@ com/example/backend/entity/Message.class
 com/example/backend/entity/Client.class
 com/example/backend/controller/MessageController.class
 com/example/backend/repository/TaskCommentRepository.class
+com/example/backend/repository/PhotoRepository.class
 com/example/backend/repository/ProjectCommentRepository.class
 com/example/backend/controller/TaskCommentController.class
 com/example/backend/repository/OrderRepository.class
 com/example/backend/repository/TaskRepository.class
+com/example/backend/controller/PhotoController.class
+com/example/backend/repository/ItemPhotoRepository.class
 com/example/backend/entity/User$UserStatus.class
 com/example/backend/entity/Project$ProjectStatus.class
 com/example/backend/BackendApplication.class
@@ -60,6 +63,7 @@ com/example/backend/repository/ProjectRepository.class
 com/example/backend/dto/AuthResponse.class
 com/example/backend/entity/ProjectComplaint.class
 com/example/backend/security/JwtAuthenticationFilter.class
+com/example/backend/controller/ItemPhotoController.class
 com/example/backend/entity/ItemPhoto.class
 com/example/backend/entity/OrderComplaint.class
 com/example/backend/repository/EmployeeRepository.class

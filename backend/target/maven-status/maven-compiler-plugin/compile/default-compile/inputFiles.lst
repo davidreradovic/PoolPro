@@ -6,8 +6,10 @@
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/EmployeeController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ItemCommentController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ItemController.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ItemPhotoController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/MessageController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/OrderController.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/PhotoController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ProjectCommentController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ProjectController.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/controller/ReviewController.java
@@ -48,12 +50,14 @@
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ClientRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/EmployeeRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ItemCommentRepository.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ItemPhotoRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ItemRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ItemReviewRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/MessageRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/OrderComplaintRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/OrderHasItemRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/OrderRepository.java
+/home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/PhotoRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ProjectCommentRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/ProjectRepository.java
 /home/vesna/PoolPro/backend/src/main/java/com/example/backend/repository/SupervisorRepository.java
