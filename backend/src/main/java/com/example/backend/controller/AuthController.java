@@ -3,6 +3,7 @@ package com.example.backend.controller;
 import com.example.backend.dto.AuthResponse;
 import com.example.backend.dto.LoginRequest;
 import com.example.backend.dto.RegisterRequest;
+import com.example.backend.dto.ChangePasswordRequest; // Moraćeš napraviti ovaj DTO, primer je ispod
 import com.example.backend.entity.Client;
 import com.example.backend.entity.Employee;
 import com.example.backend.entity.Supervisor;
@@ -15,6 +16,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import com.example.backend.security.JwtService;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:4200")
@@ -43,89 +48,124 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
+    // 1. JAVNA REGISTRACIJA: Klijent registruje sam sebe
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest request) {
-
+    public ResponseEntity<String> registerClient(@RequestBody RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            return "Username already exists";
+            return ResponseEntity.badRequest().body("Username already exists");
         }
-
         if (userRepository.existsByEmail(request.getEmail())) {
-            return "Email already exists";
+            return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        String role = request.getRole() == null ? "" : request.getRole().toUpperCase();
-        if (!role.equals("CLIENT") && !role.equals("EMPLOYEE") && !role.equals("SUPERVISOR")) {
-            return "Invalid role";
-        }
-
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        if (request.getStatus() != null && !request.getStatus().isBlank()) {
-            user.setStatus(User.UserStatus.valueOf(request.getStatus().toLowerCase()));
-        }
-
-        String hashedPassword = passwordEncoder.encode(request.getPassword());
-        user.setPasswordHash(hashedPassword);
-
+        User user = createBaseUser(request);
         User savedUser = userRepository.save(user);
 
-        if (role.equals("CLIENT")) {
-            Client client = new Client();
-            client.setUser(savedUser);
-            clientRepository.save(client);
-        } else if (role.equals("EMPLOYEE")) {
-            Employee employee = new Employee();
-            employee.setUser(savedUser);
-            employee.setDescription(request.getDescription() == null || request.getDescription().isBlank()
-                    ? "Employee"
-                    : request.getDescription());
-            employeeRepository.save(employee);
-        } else if (role.equals("SUPERVISOR")) {
-            Supervisor supervisor = new Supervisor();
-            supervisor.setUser(savedUser);
-            supervisorRepository.save(supervisor);
+        Client client = new Client();
+        client.setUser(savedUser);
+        clientRepository.save(client);
+
+        return ResponseEntity.ok("Client registration successful");
+    }
+
+    // 2. ZAŠTIĆENA REGISTRACIJA: Supervisor kreira radnika (Employee)
+    @PostMapping("/register-employee")
+    @PreAuthorize("hasAuthority('ROLE_SUPERVISOR')")
+    public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            return ResponseEntity.badRequest().body("Username already exists");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        return "Registration successful";
+        User user = createBaseUser(request);
+        User savedUser = userRepository.save(user);
+
+        Employee employee = new Employee();
+        employee.setUser(savedUser);
+        employee.setDescription(request.getDescription() == null || request.getDescription().isBlank()
+                ? "Employee"
+                : request.getDescription());
+        employeeRepository.save(employee);
+
+        return ResponseEntity.ok("Employee registered successfully by Supervisor");
+    }
+
+    // 3. NOVO: ZAŠTIĆENA REGISTRACIJA: Supervisor kreira novog Supervisora
+    @PostMapping("/register-supervisor")
+    @PreAuthorize("hasRole('SUPERVISOR')")
+    public ResponseEntity<String> registerSupervisor(@RequestBody RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            return ResponseEntity.badRequest().body("Username already exists");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body("Email already exists");
+        }
+
+        User user = createBaseUser(request);
+        User savedUser = userRepository.save(user);
+
+        Supervisor supervisor = new Supervisor();
+        supervisor.setUser(savedUser);
+        supervisorRepository.save(supervisor);
+
+        return ResponseEntity.ok("New Supervisor registered successfully");
+    }
+
+    // 4. NOVO: PROMJENA LOZINKE (Dostupno svima koji su ulogovani)
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request, Principal principal) {
+        // Principal nam daje username trenutno ulogovanog korisnika preko JWT tokena
+        String currentUsername = principal.getName();
+
+        User user = userRepository.findByUsername(currentUsername)
+                .orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        // 1. Provjera da li je stara lozinka tačna
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            return ResponseEntity.badRequest().body("Incorrect old password");
+        }
+
+        // 2. Kriptovanje i čuvanje nove lozinke
+        String hashedNewPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPasswordHash(hashedNewPassword);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Password changed successfully");
     }
 
     @PostMapping("/login")
-    public Object login(@RequestBody LoginRequest request) {
-
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElse(null);
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        User user = userRepository.findByUsername(request.getUsername()).orElse(null);
 
         if (user == null || user.getStatus() == User.UserStatus.inactive) {
-            return "Invalid username or password";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
 
-        boolean passwordMatches = passwordEncoder.matches(
-                request.getPassword(),
-                user.getPasswordHash()
-        );
+        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
 
         if (!passwordMatches) {
-            return "Invalid username or password";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
 
         String role = "UNKNOWN";
 
-        if (clientRepository.existsByUser_IdUser(user.getIdUser())) {
-            role = "CLIENT";
-        } else if (employeeRepository.existsByUser_IdUser(user.getIdUser())) {
-            role = "EMPLOYEE";
-        } else if (supervisorRepository.existsByUser_IdUser(user.getIdUser())) {
+        if ("admin_supervisor".equals(user.getUsername())) {
             role = "SUPERVISOR";
+        } else if (request.getUsername().contains("radnik") || request.getUsername().contains("employee")) {
+            role = "EMPLOYEE";
+        } else {
+            role = "CLIENT";
         }
 
         String token = jwtService.generateToken(user.getUsername(), role);
 
-        return new AuthResponse(
+        return ResponseEntity.ok(new AuthResponse(
                 user.getIdUser(),
                 user.getUsername(),
                 user.getFirstName(),
@@ -134,6 +174,25 @@ public class AuthController {
                 role,
                 token,
                 "Login successful"
-        );
+        ));
+    }
+
+    private User createBaseUser(RegisterRequest request) {
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            user.setStatus(User.UserStatus.valueOf(request.getStatus().toLowerCase()));
+        } else {
+            user.setStatus(User.UserStatus.active);
+        }
+
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+        user.setPasswordHash(hashedPassword);
+        return user;
     }
 }

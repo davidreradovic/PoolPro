@@ -4,6 +4,7 @@ com/example/backend/controller/AuthController.class
 com/example/backend/repository/SupervisorRepository.class
 com/example/backend/repository/OrderHasItemRepository.class
 com/example/backend/dto/LoginRequest.class
+com/example/backend/config/DataInitializer.class
 com/example/backend/config/SecurityConfig.class
 com/example/backend/controller/ProjectController.class
 com/example/backend/entity/TaskComment.class
@@ -15,6 +16,7 @@ com/example/backend/repository/OrderComplaintRepository.class
 com/example/backend/security/JwtService.class
 com/example/backend/entity/Task$TaskStatus.class
 com/example/backend/entity/Message.class
+com/example/backend/dto/ChangePasswordRequest.class
 com/example/backend/entity/Client.class
 com/example/backend/controller/MessageController.class
 com/example/backend/repository/TaskCommentRepository.class
