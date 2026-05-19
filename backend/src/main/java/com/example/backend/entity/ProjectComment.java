@@ -1,5 +1,5 @@
 package com.example.backend.entity;
-
+import java.time.LocalDateTime;
 import jakarta.persistence.*;
 
 @Entity
@@ -26,6 +26,13 @@ public class ProjectComment {
     @JoinColumn(name = "id_user")
     private User user;
 
+    @Column(
+            name = "timestamp",
+            insertable = false,
+            updatable = false
+    )
+    private LocalDateTime timestamp;
+
     public Integer getIdProjectComment() { return idProjectComment; }
     public void setIdProjectComment(Integer idProjectComment) { this.idProjectComment = idProjectComment; }
     public ProjectComment getReply() { return reply; }
@@ -36,4 +43,11 @@ public class ProjectComment {
     public void setContent(String content) { this.content = content; }
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
 }

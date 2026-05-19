@@ -95,13 +95,19 @@ public class ProjectCommentController {
         comment.setReply(reply);
 
         ProjectComment saved = projectCommentRepository.save(comment);
-
+       saved = projectCommentRepository
+               .findById(saved.getIdProjectComment())
+               .orElse(saved);
         Map<String, Object> response = new HashMap<>();
         response.put("idProjectComment", saved.getIdProjectComment());
         response.put("projectId", saved.getProject().getIdProject());
         response.put("userId", saved.getUser().getIdUser());
         response.put("username", saved.getUser().getUsername());
         response.put("content", saved.getContent());
+       response.put(
+               "timestamp",
+               saved.getTimestamp()
+       );
 
         if (saved.getReply() != null) {
             response.put("replyId", saved.getReply().getIdProjectComment());
