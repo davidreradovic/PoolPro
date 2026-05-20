@@ -69,28 +69,37 @@ public class AuthController {
     }
 
     // 2. ZAŠTIĆENA REGISTRACIJA: Supervisor kreira radnika (Employee)
-    @PostMapping("/register-employee")
-    @PreAuthorize("hasAuthority('ROLE_SUPERVISOR')")
-    public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
-        }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            return ResponseEntity.badRequest().body("Email already exists");
-        }
-
-        User user = createBaseUser(request);
-        User savedUser = userRepository.save(user);
-
-        Employee employee = new Employee();
-        employee.setUser(savedUser);
-        employee.setDescription(request.getDescription() == null || request.getDescription().isBlank()
-                ? "Employee"
-                : request.getDescription());
-        employeeRepository.save(employee);
-
-        return ResponseEntity.ok("Employee registered successfully by Supervisor");
+@PostMapping("/register-employee")
+@PreAuthorize("hasAuthority('ROLE_SUPERVISOR')")
+public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest request) {
+    if (userRepository.existsByUsername(request.getUsername())) {
+        return ResponseEntity.badRequest().body("Username already exists");
     }
+    if (userRepository.existsByEmail(request.getEmail())) {
+        return ResponseEntity.badRequest().body("Email already exists");
+    }
+
+    // 2. Kreiramo i čuvamo bazičnog korisnika
+    User user = createBaseUser(request);
+    User savedUser = userRepository.save(user);
+
+    // 3. Kreiramo novog zaposlenog
+    Employee employee = new Employee();
+    
+    // VEOMA BITNO: Povezujemo objekat. Hibernate će sam izvući ID iz savedUser-a!
+    employee.setUser(savedUser); 
+    
+    // UKLONJENO: employee.setIdEmployee(savedUser.getIdUser()); -> Ovo brišemo!
+
+    employee.setDescription(request.getDescription() == null || request.getDescription().isBlank()
+            ? "Employee"
+            : request.getDescription());
+            
+    // 4. Čuvamo zaposlenog
+    employeeRepository.save(employee);
+
+    return ResponseEntity.ok("Employee registered successfully by Supervisor");
+}
 
     // 3. NOVO: ZAŠTIĆENA REGISTRACIJA: Supervisor kreira novog Supervisora
     @PostMapping("/register-supervisor")
@@ -157,11 +166,14 @@ public class AuthController {
 
         if ("admin_supervisor".equals(user.getUsername())) {
             role = "SUPERVISOR";
-        } else if (request.getUsername().contains("radnik") || request.getUsername().contains("employee")) {
-            role = "EMPLOYEE";
-        } else {
-            role = "CLIENT";
-        }
+        } 
+        else if (employeeRepository.existsByUser_IdUser(user.getIdUser())) {
+    role = "EMPLOYEE";
+} 
+// 3. Ako nije ništa od navedenog, onda je klijent
+else {
+    role = "CLIENT";
+}
 
         String token = jwtService.generateToken(user.getUsername(), role);
 

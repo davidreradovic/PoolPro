@@ -1,7 +1,9 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.CreateItemRequest;
 import com.example.backend.entity.Item;
 import com.example.backend.repository.ItemRepository;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,24 +53,12 @@ public class ItemController {
 
     @PostMapping
     @PreAuthorize("hasRole('SUPERVISOR')")
-    public Object createItem(@RequestBody Item item) {
-
-        if (item.getTitle() == null || item.getTitle().trim().isEmpty()) {
-            return "Title is required";
-        }
-
-        if (item.getQuantity() == null || item.getQuantity() < 0) {
-            return "Quantity must be >= 0";
-        }
-
-        if (item.getUnitPrice() == null) {
-            return "Unit price is required";
-        }
-
-        if (item.getCategory() == null || item.getCategory().trim().isEmpty()) {
-            return "Category is required";
-        }
-
+    public Object createItem(@Valid @RequestBody CreateItemRequest request) {
+        Item item = new Item();
+        item.setTitle(request.getTitle());
+        item.setQuantity(request.getQuantity());
+        item.setUnitPrice(request.getUnitPrice());
+        item.setCategory(request.getCategory());
         Item saved = itemRepository.save(item);
 
         return Map.of(
@@ -86,7 +76,6 @@ public class ItemController {
             @PathVariable Integer id,
             @RequestBody Item updatedItem
     ) {
-
         Item item = itemRepository.findById(id).orElse(null);
 
         if (item == null) {
@@ -123,7 +112,6 @@ public class ItemController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('SUPERVISOR')")
     public Object deleteItem(@PathVariable Integer id) {
-
         Item item = itemRepository.findById(id).orElse(null);
 
         if (item == null) {

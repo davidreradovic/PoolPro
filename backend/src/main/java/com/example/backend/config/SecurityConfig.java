@@ -12,10 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
-
-
 @Configuration
-//@EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
@@ -27,9 +24,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-        System.out.println("LOADED SECURITY CONFIG - ORDERS PERMIT ALL");
-
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> {})
@@ -38,17 +32,13 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/api/item-comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/task-comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/project-comments/**").permitAll()
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/item-photos/**"
-                        ).permitAll()
-
+                        .requestMatchers(HttpMethod.GET, "/api/item-comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/photos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
                         .anyRequest().authenticated()
-
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

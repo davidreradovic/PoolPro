@@ -1,7 +1,9 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.CreateReviewRequest;
 import com.example.backend.entity.*;
 import com.example.backend.repository.*;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,26 +33,12 @@ public class ReviewController {
     @PostMapping
     @PreAuthorize("hasRole('CLIENT')")
     public Object createReview(
-            @RequestBody Map<String, Object> request
+            @Valid @RequestBody CreateReviewRequest request
     ) {
-
-        Integer clientId = (Integer) request.get("clientId");
-        Integer itemId = (Integer) request.get("itemId");
-
-        Number reviewNumber = (Number) request.get("review");
-
-        String description = (String) request.get("description");
-
-        if (reviewNumber == null) {
-            return "Review is required";
-        }
-
-        BigDecimal review = BigDecimal.valueOf(reviewNumber.doubleValue());
-
-        if (review.compareTo(BigDecimal.ZERO) < 0
-                || review.compareTo(BigDecimal.valueOf(5)) > 0) {
-            return "Review must be between 0 and 5";
-        }
+        Integer clientId = request.getClientId();
+        Integer itemId = request.getItemId();
+        BigDecimal review = request.getReview();
+        String description = request.getDescription();
 
         Client client = clientRepository.findById(clientId).orElse(null);
 
@@ -80,7 +68,6 @@ public class ReviewController {
         ItemReview saved = itemReviewRepository.save(itemReview);
 
         Map<String, Object> response = new HashMap<>();
-
         response.put("clientId", saved.getClient().getIdClient());
         response.put("itemId", saved.getItem().getIdItem());
         response.put("review", saved.getReview());
@@ -91,33 +78,14 @@ public class ReviewController {
 
     @GetMapping("/item/{itemId}")
     public Object getReviewsForItem(@PathVariable Integer itemId) {
-
         return itemReviewRepository.findByItem_IdItem(itemId)
                 .stream()
                 .map(review -> {
-
                     Map<String, Object> response = new HashMap<>();
-
-                    response.put(
-                            "clientId",
-                            review.getClient().getIdClient()
-                    );
-
-                    response.put(
-                            "clientUsername",
-                            review.getClient().getUser().getUsername()
-                    );
-
-                    response.put(
-                            "review",
-                            review.getReview()
-                    );
-
-                    response.put(
-                            "description",
-                            review.getDescription()
-                    );
-
+                    response.put("clientId", review.getClient().getIdClient());
+                    response.put("clientUsername", review.getClient().getUser().getUsername());
+                    response.put("review", review.getReview());
+                    response.put("description", review.getDescription());
                     return response;
                 })
                 .toList();
@@ -125,59 +93,17 @@ public class ReviewController {
 
     @GetMapping("/client/{clientId}")
     @PreAuthorize("hasRole('CLIENT')")
-    public Object getReviewsByClient(
-            @PathVariable Integer clientId
-    ) {
-
+    public Object getReviewsByClient(@PathVariable Integer clientId) {
         return itemReviewRepository.findByClient_IdClient(clientId)
                 .stream()
                 .map(review -> {
-
                     Map<String, Object> response = new HashMap<>();
-
-                    response.put(
-                            "itemId",
-                            review.getItem().getIdItem()
-                    );
-
-                    response.put(
-                            "itemTitle",
-                            review.getItem().getTitle()
-                    );
-
-                    response.put(
-                            "review",
-                            review.getReview()
-                    );
-
-                    response.put(
-                            "description",
-                            review.getDescription()
-                    );
-
+                    response.put("itemId", review.getItem().getIdItem());
+                    response.put("itemTitle", review.getItem().getTitle());
+                    response.put("review", review.getReview());
+                    response.put("description", review.getDescription());
                     return response;
                 })
                 .toList();
     }
-
-   /* @DeleteMapping("/{clientId}/{itemId}")
-    @PreAuthorize("hasRole('CLIENT')")
-    public Object deleteReview(
-            @PathVariable Integer clientId,
-            @PathVariable Integer itemId
-    ) {
-
-        ItemReviewId id = new ItemReviewId(clientId, itemId);
-
-        ItemReview review = itemReviewRepository.findById(id)
-                .orElse(null);
-
-        if (review == null) {
-            return "Review not found";
-        }
-
-        itemReviewRepository.delete(review);
-
-        return "Review deleted";
-    }*/
 }

@@ -1,7 +1,10 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.CheckoutRequest;
+import com.example.backend.dto.CreateComplaintRequest;
 import com.example.backend.entity.*;
 import com.example.backend.repository.*;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,13 +44,9 @@ public class OrderController {
     @PreAuthorize("hasRole('CLIENT')")
     public Object checkout(
             @PathVariable Integer clientId,
-            @RequestBody Map<String, Object> request
+            @Valid @RequestBody CheckoutRequest request
     ) {
-        String address = (String) request.get("address");
-
-        if (address == null || address.trim().isEmpty()) {
-            return "Address is required";
-        }
+        String address = request.getAddress();
 
         Client client = clientRepository.findById(clientId).orElse(null);
 
@@ -147,7 +146,7 @@ public class OrderController {
     }
 
     @GetMapping("/client/{clientId}")
-   @PreAuthorize("hasAnyRole('CLIENT', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'SUPERVISOR')")
     public Object getOrdersByClient(@PathVariable Integer clientId) {
         return orderRepository.findByClient_IdClient(clientId)
                 .stream()
@@ -181,14 +180,9 @@ public class OrderController {
     @PreAuthorize("hasRole('CLIENT')")
     public Object createComplaint(
             @PathVariable Integer orderId,
-            @RequestBody Map<String, Object> request
+            @Valid @RequestBody CreateComplaintRequest request
     ) {
-
-        String comment = (String) request.get("comment");
-
-        if (comment == null || comment.trim().isEmpty()) {
-            return "Complaint comment is required";
-        }
+        String comment = request.getComment();
 
         Order order = orderRepository.findById(orderId).orElse(null);
 

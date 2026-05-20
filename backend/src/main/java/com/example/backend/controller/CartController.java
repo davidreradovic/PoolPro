@@ -1,7 +1,9 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.AddToCartRequest;
 import com.example.backend.entity.*;
 import com.example.backend.repository.*;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,14 +36,10 @@ public class CartController {
     @PreAuthorize("hasRole('CLIENT')")
     public Object addItemToCart(
             @PathVariable Integer clientId,
-            @RequestBody Map<String, Object> request
+            @Valid @RequestBody AddToCartRequest request
     ) {
-        Integer itemId = (Integer) request.get("itemId");
-        Integer quantity = (Integer) request.get("quantity");
-
-        if (quantity == null || quantity <= 0) {
-            return "Quantity must be greater than 0";
-        }
+        Integer itemId = request.getItemId();
+        Integer quantity = request.getQuantity();
 
         Client client = clientRepository.findById(clientId).orElse(null);
         if (client == null) {
@@ -119,14 +117,10 @@ public class CartController {
     @PreAuthorize("hasRole('CLIENT')")
     public Object updateQuantity(
             @PathVariable Integer clientId,
-            @RequestBody Map<String, Object> request
+            @Valid @RequestBody AddToCartRequest request
     ) {
-        Integer itemId = (Integer) request.get("itemId");
-        Integer quantity = (Integer) request.get("quantity");
-
-        if (quantity == null || quantity <= 0) {
-            return "Quantity must be greater than 0";
-        }
+        Integer itemId = request.getItemId();
+        Integer quantity = request.getQuantity();
 
         Cart cart = cartRepository.findByClient_IdClient(clientId).orElse(null);
         if (cart == null) {

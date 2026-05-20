@@ -1,11 +1,13 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.SendMessageRequest;
 import com.example.backend.entity.Message;
 import com.example.backend.entity.User;
 import com.example.backend.repository.ClientRepository;
 import com.example.backend.repository.MessageRepository;
 import com.example.backend.repository.SupervisorRepository;
 import com.example.backend.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -37,28 +39,23 @@ public class MessageController {
     @PostMapping
     @PreAuthorize("hasAnyRole('CLIENT', 'SUPERVISOR')")
     public Object sendMessage(
-            @RequestBody Map<String, Object> request,
+            @Valid @RequestBody SendMessageRequest request,
             Authentication authentication
     ) {
         String username = authentication.getName();
-
         User sender = userRepository.findByUsername(username).orElse(null);
 
         if (sender == null) {
             return "Sender not found";
         }
 
-        Integer receiverId = (Integer) request.get("receiverId");
-        String content = (String) request.get("content");
+        Integer receiverId = request.getReceiverId();
+        String content = request.getContent();
 
         User receiver = userRepository.findById(receiverId).orElse(null);
 
         if (receiver == null) {
             return "Receiver not found";
-        }
-
-        if (content == null || content.trim().isEmpty()) {
-            return "Message content is required";
         }
 
         boolean senderIsClient = clientRepository.existsById(sender.getIdUser());

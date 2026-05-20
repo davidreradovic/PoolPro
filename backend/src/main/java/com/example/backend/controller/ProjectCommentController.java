@@ -1,14 +1,17 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.CreateProjectCommentRequest;
 import com.example.backend.entity.Project;
 import com.example.backend.entity.ProjectComment;
 import com.example.backend.entity.User;
 import com.example.backend.repository.ProjectCommentRepository;
 import com.example.backend.repository.ProjectRepository;
 import com.example.backend.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,51 +34,27 @@ public class ProjectCommentController {
         this.userRepository = userRepository;
     }
 
-   /* @PostMapping
+    @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public Object createComment(@RequestBody Map<String, Object> request) {
+    public Object createComment(
+            @Valid @RequestBody CreateProjectCommentRequest request,
+            Authentication authentication
+    ) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElse(null);
 
-        Integer projectId = (Integer) request.get("projectId");
-        Integer userId = (Integer) request.get("userId");
-        Integer replyId = null;*/
-   @PostMapping
-   @PreAuthorize("isAuthenticated()")
-   public Object createComment(
-           @RequestBody Map<String, Object> request,
-           Authentication authentication
-   ) {
-       String username = authentication.getName();
-
-       User user = userRepository.findByUsername(username).orElse(null);
-
-       if (user == null) {
-           return "User not found";
-       }
-
-       Integer projectId = (Integer) request.get("projectId");
-       Integer replyId = request.get("replyId") == null ? null : (Integer) request.get("replyId");
-       String content = (String) request.get("content");
-
-      //  if (request.get("replyId") != null) {
-         //   replyId = (Integer) request.get("replyId");
-        //}
-
-        //String content = (String) request.get("content");
-
-        if (content == null || content.trim().isEmpty()) {
-            return "Comment content is required";
+        if (user == null) {
+            return "User not found";
         }
+
+        Integer projectId = request.getProjectId();
+        Integer replyId = request.getReplyId();
+        String content = request.getContent();
 
         Project project = projectRepository.findById(projectId).orElse(null);
 
         if (project == null) {
             return "Project not found";
-        }
-
-       // User user = userRepository.findById(userId).orElse(null);
-
-        if (user == null) {
-            return "User not found";
         }
 
         ProjectComment reply = null;
@@ -95,19 +74,15 @@ public class ProjectCommentController {
         comment.setReply(reply);
 
         ProjectComment saved = projectCommentRepository.save(comment);
-       saved = projectCommentRepository
-               .findById(saved.getIdProjectComment())
-               .orElse(saved);
+        saved = projectCommentRepository.findById(saved.getIdProjectComment()).orElse(saved);
+
         Map<String, Object> response = new HashMap<>();
         response.put("idProjectComment", saved.getIdProjectComment());
         response.put("projectId", saved.getProject().getIdProject());
         response.put("userId", saved.getUser().getIdUser());
         response.put("username", saved.getUser().getUsername());
         response.put("content", saved.getContent());
-       response.put(
-               "timestamp",
-               saved.getTimestamp()
-       );
+        response.put("timestamp", saved.getTimestamp());
 
         if (saved.getReply() != null) {
             response.put("replyId", saved.getReply().getIdProjectComment());
@@ -122,7 +97,6 @@ public class ProjectCommentController {
                 .stream()
                 .map(comment -> {
                     Map<String, Object> response = new HashMap<>();
-
                     response.put("idProjectComment", comment.getIdProjectComment());
                     response.put("content", comment.getContent());
                     response.put("userId", comment.getUser().getIdUser());

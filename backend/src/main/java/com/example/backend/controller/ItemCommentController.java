@@ -1,14 +1,16 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.CreateItemCommentRequest;
 import com.example.backend.entity.Item;
 import com.example.backend.entity.ItemComment;
 import com.example.backend.entity.User;
 import com.example.backend.repository.ItemCommentRepository;
 import com.example.backend.repository.ItemRepository;
 import com.example.backend.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,34 +36,25 @@ public class ItemCommentController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public Object createComment(@RequestBody Map<String, Object> request, Authentication authentication) {
-
+    public Object createComment(
+            @Valid @RequestBody CreateItemCommentRequest request,
+            Authentication authentication
+    ) {
         String username = authentication.getName();
-
         User user = userRepository.findByUsername(username).orElse(null);
 
         if (user == null) {
             return "User not found";
         }
 
-        Integer itemId = (Integer) request.get("itemId");
-        //Integer userId = (Integer) request.get("userId");
-        String content = (String) request.get("content");
-
-        Integer replyId = null;
-        if (request.get("replyId") != null) {
-            replyId = (Integer) request.get("replyId");
-        }
-
-        if (content == null || content.trim().isEmpty()) {
-            return "Comment content is required";
-        }
+        Integer itemId = request.getItemId();
+        Integer replyId = request.getReplyId();
+        String content = request.getContent();
 
         Item item = itemRepository.findById(itemId).orElse(null);
         if (item == null) {
             return "Item not found";
         }
-
 
         ItemComment reply = null;
         if (replyId != null) {
@@ -79,7 +72,6 @@ public class ItemCommentController {
         comment.setReply(reply);
 
         ItemComment saved = itemCommentRepository.save(comment);
-
         saved = itemCommentRepository.findById(saved.getIdItemComment()).orElse(saved);
 
         Map<String, Object> response = new HashMap<>();
@@ -103,7 +95,6 @@ public class ItemCommentController {
                 .stream()
                 .map(comment -> {
                     Map<String, Object> response = new HashMap<>();
-
                     response.put("idItemComment", comment.getIdItemComment());
                     response.put("content", comment.getContent());
                     response.put("timestamp", comment.getTimestamp());
