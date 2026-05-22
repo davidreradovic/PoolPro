@@ -13,6 +13,7 @@ import com.example.backend.repository.EmployeeRepository;
 import com.example.backend.repository.SupervisorRepository;
 import com.example.backend.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import com.example.backend.security.JwtService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -70,7 +71,8 @@ public class AuthController {
 
     // 2. ZAŠTIĆENA REGISTRACIJA: Supervisor kreira radnika (Employee)
 @PostMapping("/register-employee")
-@PreAuthorize("hasAuthority('ROLE_SUPERVISOR')")
+@PreAuthorize("hasRole('SUPERVISOR')")
+@Transactional
 public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest request) {
     if (userRepository.existsByUsername(request.getUsername())) {
         return ResponseEntity.badRequest().body("Username already exists");
@@ -104,6 +106,7 @@ public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest requ
     // 3. NOVO: ZAŠTIĆENA REGISTRACIJA: Supervisor kreira novog Supervisora
     @PostMapping("/register-supervisor")
     @PreAuthorize("hasRole('SUPERVISOR')")
+    @Transactional
     public ResponseEntity<String> registerSupervisor(@RequestBody RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             return ResponseEntity.badRequest().body("Username already exists");
@@ -117,7 +120,7 @@ public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest requ
 
         Supervisor supervisor = new Supervisor();
         supervisor.setUser(savedUser);
-        supervisorRepository.save(supervisor);
+        supervisorRepository.saveAndFlush(supervisor);
 
         return ResponseEntity.ok("New Supervisor registered successfully");
     }
@@ -162,18 +165,15 @@ public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest requ
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
 
-        String role = "UNKNOWN";
+        String role;
 
-        if ("admin_supervisor".equals(user.getUsername())) {
+        if (supervisorRepository.existsByUser_IdUser(user.getIdUser()) || "admin_supervisor".equals(user.getUsername())) {
             role = "SUPERVISOR";
-        } 
-        else if (employeeRepository.existsByUser_IdUser(user.getIdUser())) {
-    role = "EMPLOYEE";
-} 
-// 3. Ako nije ništa od navedenog, onda je klijent
-else {
-    role = "CLIENT";
-}
+        } else if (employeeRepository.existsByUser_IdUser(user.getIdUser())) {
+            role = "EMPLOYEE";
+        } else {
+            role = "CLIENT";
+        }
 
         String token = jwtService.generateToken(user.getUsername(), role);
 
