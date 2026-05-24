@@ -73,6 +73,7 @@ com\example\backend\entity\Order.class
 com\example\backend\dto\CreateTaskRequest.class
 com\example\backend\entity\CartHasItemId.class
 com\example\backend\controller\ProjectCommentController.class
+com\example\backend\controller\SupervisorController.class
 com\example\backend\repository\TaskCommentRepository.class
 com\example\backend\controller\OrderController.class
 com\example\backend\entity\OrderComplaint.class
