@@ -11,7 +11,7 @@ public class ItemPhoto {
     @Column(name = "iditem_photo")
     private Integer idItemPhoto;
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "img_path", nullable = false, length = 255)
     private String img;
 
     @Column(nullable = false, length = 45)

@@ -167,7 +167,7 @@ public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest requ
 
         String role;
 
-        if (supervisorRepository.existsByUser_IdUser(user.getIdUser()) || "admin_supervisor".equals(user.getUsername())) {
+        if (supervisorRepository.existsByUser_IdUser(user.getIdUser())) {
             role = "SUPERVISOR";
         } else if (employeeRepository.existsByUser_IdUser(user.getIdUser())) {
             role = "EMPLOYEE";

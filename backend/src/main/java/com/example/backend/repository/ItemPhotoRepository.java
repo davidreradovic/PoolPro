@@ -9,4 +9,6 @@ public interface ItemPhotoRepository
         extends JpaRepository<ItemPhoto, Integer> {
 
     List<ItemPhoto> findByItem_IdItem(Integer itemId);
+
+    void deleteByItem_IdItem(Integer itemId);
 }

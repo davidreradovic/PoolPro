@@ -8,4 +8,6 @@ import java.util.List;
 public interface PhotoRepository extends JpaRepository<Photo, Integer> {
 
     List<Photo> findByTask_IdTask(Integer taskId);
+
+    List<Photo> findByTask_Project_IdProject(Integer idProject);
 }

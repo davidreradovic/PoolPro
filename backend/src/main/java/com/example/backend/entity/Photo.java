@@ -14,7 +14,7 @@ public class Photo {
     @JoinColumn(name = "id_task")
     private Task task;
 
-    @Column(name = "img", length = 255)
+    @Column(name = "img_path", length = 255)
     private String img;
 
     public Integer getIdPhoto() { return idPhoto; }

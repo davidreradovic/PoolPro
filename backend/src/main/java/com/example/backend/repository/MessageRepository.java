@@ -13,4 +13,6 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
     );
 
     List<Message> findByReceiver_IdUserAndIsReadFalse(Integer receiverId);
+
+    List<Message> findBySender_IdUserOrReceiver_IdUser(Integer senderId, Integer receiverId);
 }

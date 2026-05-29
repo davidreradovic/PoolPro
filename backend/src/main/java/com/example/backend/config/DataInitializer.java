@@ -32,15 +32,15 @@ public void run(String... args) {
         if (supervisorRepository.count() == 0) {
 
             // Prvo proveri da ne postoji korisnik sa tim username-om
-            if (!userRepository.existsByUsername("admin_supervisor")) {
+            if (!userRepository.existsByUsername("admin")) {
                 User user = new User();
-                user.setUsername("admin_supervisor");
+                user.setUsername("admin");
                 user.setFirstName("Glavni");
                 user.setLastName("Supervisor");
-                user.setEmail("supervisor@poolpro.com");
+                user.setEmail("admin@poolpro.com");
                 user.setPhone("065123456");
                 user.setStatus(User.UserStatus.active);
-                user.setPasswordHash(passwordEncoder.encode("SupervisorSifra123!"));
+                user.setPasswordHash(passwordEncoder.encode("admin"));
 
                 // 1. Čuvamo korisnika
                 User savedUser = userRepository.save(user);
@@ -57,8 +57,8 @@ public void run(String... args) {
                 supervisorRepository.save(supervisor);
 
                 System.out.println(">>> INICIJALNI SUPERVISOR JE USPEŠNO KREIRAN U BAZI <<<");
-                System.out.println("Username: admin_supervisor");
-                System.out.println("Password: SupervisorSifra123!");
+                System.out.println("Username: admin");
+                System.out.println("Password: admin");
             }
         }
     } catch (Exception e) {

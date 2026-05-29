@@ -51,6 +51,10 @@ public class CartController {
             return "Item not found";
         }
 
+        if (item.getQuantity() == null || item.getQuantity() <= 0) {
+            return "Item is out of stock";
+        }
+
         Cart cart = cartRepository.findByClient_IdClient(clientId).orElse(null);
 
         if (cart == null) {
@@ -64,6 +68,12 @@ public class CartController {
         id.setIdItem(item.getIdItem());
 
         CartHasItem cartItem = cartHasItemRepository.findById(id).orElse(null);
+        int existingQuantity = cartItem == null ? 0 : cartItem.getQuantity();
+        int requestedQuantity = existingQuantity + quantity;
+
+        if (requestedQuantity > item.getQuantity()) {
+            return "Only " + item.getQuantity() + " items available";
+        }
 
         if (cartItem == null) {
             cartItem = new CartHasItem();
@@ -135,6 +145,15 @@ public class CartController {
 
         if (cartItem == null) {
             return "Item not found in cart";
+        }
+
+        Item item = itemRepository.findById(itemId).orElse(null);
+        if (item == null) {
+            return "Item not found";
+        }
+
+        if (quantity > item.getQuantity()) {
+            return "Only " + item.getQuantity() + " items available";
         }
 
         cartItem.setQuantity(quantity);

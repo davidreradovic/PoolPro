@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,8 @@ public class ReviewController {
     @PostMapping
     @PreAuthorize("hasRole('CLIENT')")
     public Object createReview(
-            @Valid @RequestBody CreateReviewRequest request
+            @Valid @RequestBody CreateReviewRequest request,
+            Principal principal
     ) {
         Integer clientId = request.getClientId();
         Integer itemId = request.getItemId();
@@ -44,6 +46,10 @@ public class ReviewController {
 
         if (client == null) {
             return "Client not found";
+        }
+
+        if (!client.getUser().getUsername().equals(principal.getName())) {
+            return "You can only create your own review";
         }
 
         Item item = itemRepository.findById(itemId).orElse(null);
@@ -64,6 +70,40 @@ public class ReviewController {
         itemReview.setItem(item);
         itemReview.setReview(review);
         itemReview.setDescription(description);
+
+        ItemReview saved = itemReviewRepository.save(itemReview);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("clientId", saved.getClient().getIdClient());
+        response.put("itemId", saved.getItem().getIdItem());
+        response.put("review", saved.getReview());
+        response.put("description", saved.getDescription());
+
+        return response;
+    }
+
+    @PutMapping
+    @PreAuthorize("hasRole('CLIENT')")
+    public Object updateReview(
+            @Valid @RequestBody CreateReviewRequest request,
+            Principal principal
+    ) {
+        Integer clientId = request.getClientId();
+        Integer itemId = request.getItemId();
+
+        ItemReviewId id = new ItemReviewId(clientId, itemId);
+        ItemReview itemReview = itemReviewRepository.findById(id).orElse(null);
+
+        if (itemReview == null) {
+            return "Review not found";
+        }
+
+        if (!itemReview.getClient().getUser().getUsername().equals(principal.getName())) {
+            return "You can only update your own review";
+        }
+
+        itemReview.setReview(request.getReview());
+        itemReview.setDescription(request.getDescription());
 
         ItemReview saved = itemReviewRepository.save(itemReview);
 

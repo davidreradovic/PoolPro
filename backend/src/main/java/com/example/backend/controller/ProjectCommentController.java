@@ -82,7 +82,6 @@ public class ProjectCommentController {
         response.put("userId", saved.getUser().getIdUser());
         response.put("username", saved.getUser().getUsername());
         response.put("content", saved.getContent());
-        response.put("timestamp", saved.getTimestamp());
 
         if (saved.getReply() != null) {
             response.put("replyId", saved.getReply().getIdProjectComment());
