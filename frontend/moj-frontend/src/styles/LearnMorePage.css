@@ -1,0 +1,64 @@
+:root{
+  --brand-blue:#0b72b9;
+  --brand-orange:#ff7a18;
+  --bg-white:#ffffff;
+  --muted:#6b7280;
+  --card-shadow: 0 12px 30px rgba(11,114,185,0.08);
+}
+
+.learn-more-page{
+  padding:40px;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  color: #052036;
+  background: linear-gradient(180deg, rgba(11,114,185,0.03), rgba(255,122,24,0.015));
+}
+
+.back-btn{
+  background: transparent;
+  border: none;
+  color: var(--brand-blue);
+  cursor: pointer;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.content-grid{ display: grid; gap: 20px; }
+
+.hero{
+  display:flex;
+  gap: 24px;
+  align-items:center;
+  background-image: linear-gradient(135deg, rgba(11,114,185,0.85), rgba(255,122,24,0.85)), url('https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=1600&q=80&auto=format&fit=crop');
+  background-blend-mode: overlay;
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  padding: 36px;
+  border-radius: 12px;
+}
+
+.hero-content h1{ font-family: 'Playfair Display', serif; margin:0; font-size:34px; }
+.hero-sub{ margin-top:8px; color: rgba(255,255,255,0.95); font-weight:600; }
+.hero-lead{ margin-top:12px; color: rgba(255,255,255,0.92); max-width:60ch; line-height:1.5; }
+
+.hero-image{ width:240px; height:150px; border-radius:10px; overflow:hidden; box-shadow: var(--card-shadow); border: 3px solid rgba(255,255,255,0.12); }
+.hero-image img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+.card{ background: var(--bg-white); padding:20px 24px; border-radius:12px; box-shadow: var(--card-shadow); color: #07203a; }
+.muted{ color: var(--muted); }
+
+.grid-two{ display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+
+.gallery{ display: grid; gap:10px; grid-template-rows: repeat(3, 1fr); }
+.gallery img{ width:100%; height:160px; object-fit:cover; border-radius:10px; transition: transform .3s ease; }
+.gallery img:hover{ transform: scale(1.03); }
+
+.cta-btn{ background: linear-gradient(90deg, var(--brand-blue), var(--brand-orange)); color:#fff; padding:10px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:700; }
+
+.contact-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
+
+@media (max-width:900px){
+  .grid-two{ grid-template-columns: 1fr; }
+  .hero{ flex-direction:column; text-align:left; }
+  .hero-image{ width:100%; height:200px; }
+}
