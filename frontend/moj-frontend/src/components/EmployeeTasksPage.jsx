@@ -2,6 +2,102 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { apiFetch } from "../utils/api";
 
+function TaskPhotoUpload({ taskId, token }) {
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photos, setPhotos] = useState([]);
+  const [message, setMessage] = useState("");
+  const [open, setOpen] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState(null);
+
+  const loadPhotos = async () => {
+    try {
+      const res = await apiFetch(`/photos/task/${taskId}`);
+      if (Array.isArray(res)) setPhotos(res);
+    } catch {}
+  };
+
+  useEffect(() => {
+    loadPhotos();
+  }, [taskId]);
+
+  const submitPhoto = async () => {
+    if (!photoFile) return;
+    try {
+      const formData = new FormData();
+      formData.append("file", photoFile);
+
+      await apiFetch(
+        `/photos/task/${taskId}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        },
+        token
+      );
+      setPhotoFile(null);
+      setMessage("Photo added!");
+      loadPhotos();
+      setTimeout(() => setMessage(""), 2000);
+    } catch (e) {
+      setMessage("Failed to add photo.");
+    }
+  };
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <button
+        className="btn-ghost"
+        style={{ fontSize: "0.85rem", padding: "6px 12px" }}
+        onClick={() => setOpen(!open)}
+      >
+        📷 Photos {photos.length > 0 ? `(${photos.length})` : ""}
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 12, padding: 12, background: "var(--light)", borderRadius: 8 }}>
+          {photos.length > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+              {photos.map((p) => (
+                <img
+                  key={p.idPhoto}
+                  src={p.imgUrl || p.img}
+                  alt="task photo"
+                  className="photo-thumb"
+                  style={{ width: 80, height: 80 }}
+                  onClick={() => setPreviewPhoto(p.imgUrl || p.img)}
+                />
+              ))}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              className="form-input"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+              style={{ flex: 1 }}
+            />
+            <button className="btn-primary" style={{ fontSize: "0.85rem" }} onClick={submitPhoto}>
+              Add
+            </button>
+          </div>
+          {message && (
+            <div style={{ marginTop: 8, fontSize: "0.85rem", color: "var(--mid)" }}>{message}</div>
+          )}
+        </div>
+      )}
+      {previewPhoto && (
+        <div className="image-preview-overlay" onClick={() => setPreviewPhoto(null)}>
+          <button className="image-preview-close" onClick={() => setPreviewPhoto(null)}>
+            ×
+          </button>
+          <img src={previewPhoto} alt="task preview" className="image-preview" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function EmployeeTasksPage({ setPage }) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
@@ -15,14 +111,11 @@ export function EmployeeTasksPage({ setPage }) {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Get employee by userId
         const userId = user.id || user.idUser;
         if (!userId) return;
         const empRes = await apiFetch(`/employees/user/${userId}`, {}, user.token);
         if (empRes && empRes.idEmployee) {
           setEmployee(empRes);
-
-          // Get tasks for this employee
           const tasksRes = await apiFetch(
             `/tasks/employee/${empRes.idEmployee}`,
             {},
@@ -48,8 +141,7 @@ export function EmployeeTasksPage({ setPage }) {
         { method: "PUT" },
         user.token
       );
-      if (typeof res === "string" && res.includes("success") || res.idTask) {
-        // Refresh tasks
+      if ((typeof res === "string" && res.includes("success")) || res.idTask) {
         if (employee) {
           const tasksRes = await apiFetch(
             `/tasks/employee/${employee.idEmployee}`,
@@ -67,9 +159,7 @@ export function EmployeeTasksPage({ setPage }) {
   };
 
   const filteredTasks =
-    filter === "all"
-      ? tasks
-      : tasks.filter((t) => t.status === filter);
+    filter === "all" ? tasks : tasks.filter((t) => t.status === filter);
 
   const statusColors = {
     todo: "#ff6b6b",
@@ -121,7 +211,10 @@ export function EmployeeTasksPage({ setPage }) {
               style={{
                 padding: "8px 16px",
                 border: `2px solid ${filter === status ? statusColors[status] || "#0093B2" : "#ccc"}`,
-                background: filter === status ? (statusColors[status] || "#0093B2") + "20" : "transparent",
+                background:
+                  filter === status
+                    ? (statusColors[status] || "#0093B2") + "20"
+                    : "transparent",
                 color: statusColors[status] || "#0093B2",
                 borderRadius: 6,
                 cursor: "pointer",
@@ -213,6 +306,8 @@ export function EmployeeTasksPage({ setPage }) {
                   </>
                 )}
               </div>
+
+              <TaskPhotoUpload taskId={task.idTask} token={user.token} />
             </div>
           ))}
         </div>

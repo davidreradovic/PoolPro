@@ -45,24 +45,49 @@ function TasksBoardView({ projects, user }) {
 export function ProjectsPage({ setPage, setSelectedProject }) {
   const { user } = useAuth();
   const [projects, setProjects] = useState([]);
+  const [clients, setClients] = useState([]);
   const [view, setView] = useState("list");
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", idClient: "", idSupervisor: "" });
+  const [form, setForm] = useState({ title: "", description: "", idClient: "", publicProject: false });
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    fetchProjects();
-  }, [user]);
 
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await apiFetch("/projects", {}, user?.token);
+      const userId = user.id || user.idUser;
+      const path = user?.role === "CLIENT" ? `/projects/client/${userId}` : "/projects";
+      const res = await apiFetch(path, {}, user?.token);
       if (Array.isArray(res)) setProjects(res);
-    } catch {}
+    } catch (e) {
+      console.error("Failed to load projects", e);
+    }
     setLoading(false);
   };
+
+  const fetchClients = async () => {
+    try {
+      const res = await apiFetch("/users/clients", {}, user?.token);
+      if (Array.isArray(res)) {
+        setClients(res);
+        if (res.length > 0 && !form.idClient) {
+          setForm((current) => ({ ...current, idClient: String(res[0].idClient) }));
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load clients", e);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    const timer = setTimeout(() => {
+      fetchProjects();
+      if (user.role === "SUPERVISOR") {
+        fetchClients();
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [user]);
 
   const createProject = async () => {
     try {
@@ -71,23 +96,43 @@ export function ProjectsPage({ setPage, setSelectedProject }) {
         {
           method: "POST",
           body: JSON.stringify({
-            ...form,
+            title: form.title,
+            description: form.description,
             idClient: parseInt(form.idClient),
-            idSupervisor: parseInt(form.idSupervisor),
+            publicProject: form.publicProject,
           }),
         },
         user?.token
       );
       fetchProjects();
       setShowModal(false);
-    } catch {}
+      setForm({
+        title: "",
+        description: "",
+        idClient: clients[0]?.idClient ? String(clients[0].idClient) : "",
+        publicProject: false,
+      });
+    } catch (e) {
+      console.error("Failed to create project", e);
+    }
   };
 
   const updateStatus = async (id, status) => {
     try {
       await apiFetch(`/projects/${id}/status?status=${status}`, { method: "PUT" }, user?.token);
       fetchProjects();
-    } catch {}
+    } catch (e) {
+      console.error("Failed to update project status", e);
+    }
+  };
+
+  const updateVisibility = async (id, publicProject) => {
+    try {
+      await apiFetch(`/projects/${id}/public?publicProject=${publicProject}`, { method: "PUT" }, user?.token);
+      fetchProjects();
+    } catch (e) {
+      console.error("Failed to update project visibility", e);
+    }
   };
 
   const deleteProject = async (id) => {
@@ -95,7 +140,9 @@ export function ProjectsPage({ setPage, setSelectedProject }) {
     try {
       await apiFetch(`/projects/${id}`, { method: "DELETE" }, user?.token);
       fetchProjects();
-    } catch {}
+    } catch (e) {
+      console.error("Failed to delete project", e);
+    }
   };
 
   if (!user) {
@@ -129,7 +176,7 @@ export function ProjectsPage({ setPage, setSelectedProject }) {
           <button className={`btn-ghost ${view === "board" ? "active" : ""}`} onClick={() => setView("board")}>
             ⊞ Board
           </button>
-          {(user?.role === "SUPERVISOR" || user?.role === "EMPLOYEE") && (
+          {user?.role === "SUPERVISOR" && (
             <button className="btn-primary" onClick={() => setShowModal(true)}>
               + New Project
             </button>
@@ -161,6 +208,19 @@ export function ProjectsPage({ setPage, setSelectedProject }) {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span className={`status-badge ${statusColor(p.status)}`}>{p.status}</span>
+              {user?.role === "SUPERVISOR" && (
+                <label
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.82rem", color: "var(--mid)" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(p.publicProject)}
+                    onChange={(e) => updateVisibility(p.idProject, e.target.checked)}
+                  />
+                  Public
+                </label>
+              )}
               {user?.role === "SUPERVISOR" && (
                 <select
                   className="form-select"
@@ -214,23 +274,28 @@ export function ProjectsPage({ setPage, setSelectedProject }) {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Client ID</label>
-              <input
-                className="form-input"
-                type="number"
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
                 value={form.idClient}
                 onChange={(e) => setForm({ ...form, idClient: e.target.value })}
-              />
+              >
+                <option value="">Select client...</option>
+                {clients.map((client) => (
+                  <option key={client.idClient} value={client.idClient}>
+                    {client.firstName} {client.lastName} ({client.username})
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="form-group">
-              <label className="form-label">Supervisor ID</label>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
               <input
-                className="form-input"
-                type="number"
-                value={form.idSupervisor}
-                onChange={(e) => setForm({ ...form, idSupervisor: e.target.value })}
+                type="checkbox"
+                checked={form.publicProject}
+                onChange={(e) => setForm({ ...form, publicProject: e.target.checked })}
               />
-            </div>
+              <span style={{ color: "var(--mid)", fontWeight: 700 }}>Show this project on Home page</span>
+            </label>
             <div className="modal-footer">
               <button className="btn-secondary" onClick={() => setShowModal(false)}>
                 Cancel

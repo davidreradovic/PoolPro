@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { apiFetch } from "../utils/api";
 
-export function AuthPage({ setPage }) {
+export function AuthPage({ setPage, getHomeForUser }) {
   const { login } = useAuth();
   const [tab, setTab] = useState("signin");
   const [form, setForm] = useState({
@@ -27,12 +27,12 @@ export function AuthPage({ setPage }) {
       );
       if (res && res.message === "Login successful") {
         login(res);
-        setPage("home");
+        setPage(getHomeForUser ? getHomeForUser(res) : "home");
       } else {
         setErr(typeof res === "string" ? res : "Login failed");
       }
-    } catch {
-      setErr("Server unavailable. Using demo mode.");
+    } catch (e) {
+      setErr(e.message || "Server unavailable. Please try again later.");
     }
     setLoading(false);
   };
@@ -97,19 +97,6 @@ export function AuthPage({ setPage }) {
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="Enter password"
                 />
-              </div>
-              <div style={{ marginBottom: 20 }}>
-                <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--coral)",
-                    cursor: "pointer",
-                    fontSize: "0.88rem",
-                  }}
-                >
-                  Forgot password?
-                </button>
               </div>
               <button
                 className="btn-primary"

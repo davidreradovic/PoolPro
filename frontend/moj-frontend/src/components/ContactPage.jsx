@@ -1,48 +1,8 @@
-import { useState } from "react";
-
 export function ContactPage() {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [sent, setSent] = useState(false);
-
   return (
     <div className="contact-container">
-      <h1>Contact Us</h1>
-      <p>Have questions about our products or services? We're here to help.</p>
-      {sent ? (
-        <div className="alert alert-success">Thank you! We'll get back to you soon.</div>
-      ) : (
-        <>
-          <div className="form-group">
-            <label className="form-label">Name</label>
-            <input
-              className="form-input"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input
-              className="form-input"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Message</label>
-            <textarea
-              className="form-textarea"
-              style={{ minHeight: 120 }}
-              value={form.message}
-              onChange={(e) => setForm({ ...form, message: e.target.value })}
-            />
-          </div>
-          <button className="btn-primary" onClick={() => setSent(true)}>
-            Send Message
-          </button>
-        </>
-      )}
+      <h1>Contact Information</h1>
+      <p>For questions about our products or services, please use the details below.</p>
       <div style={{ marginTop: 48, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24 }}>
         {[
           { icon: "📍", label: "Address", val: "Banja Luka, Bosnia" },

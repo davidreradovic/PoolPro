@@ -1,16 +1,30 @@
 import { useAuth } from "../context/AuthContext";
 
-export function OrderConfirmPage({ items, setPage }) {
+export function OrderConfirmPage({ items, order, setPage }) {
   const { user } = useAuth();
   const subtotal = items.reduce((s, i) => s + (i.unitPrice || i.price) * i.qty, 0);
+  const total = Number(order?.totalPrice ?? subtotal);
 
   return (
     <div className="order-confirm">
       <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: "2rem", marginBottom: 6 }}>
         Thank you, {user?.firstName || "Customer"}!
       </h1>
-      <p style={{ color: "var(--mid)", marginBottom: 28 }}>Your order has been placed successfully. You'll receive a confirmation email soon.</p>
+      <p style={{ color: "var(--mid)", marginBottom: 28 }}>Your order has been placed successfully.</p>
       <div className="order-confirm-box">
+        {order?.idOrder && (
+          <div style={{ display: "grid", gap: 8, marginBottom: 18 }}>
+            <div>
+              Order #: <strong>{order.idOrder}</strong>
+            </div>
+            <div>
+              Status: <strong>{order.status}</strong>
+            </div>
+            <div>
+              Delivery address: <strong>{order.address}</strong>
+            </div>
+          </div>
+        )}
         {items.map((item) => (
           <div key={item.idItem || item.id} className="order-item-row">
             <div style={{ width: 50, height: 50, background: "#f0f0f0", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0 }}>
@@ -36,13 +50,18 @@ export function OrderConfirmPage({ items, setPage }) {
             Sales tax: <strong>0.00 KM</strong>
           </div>
           <div style={{ fontSize: "1.05rem", marginTop: 8 }}>
-            TOTAL: <strong style={{ color: "var(--coral)" }}>{subtotal.toFixed(2)} KM</strong>
+            TOTAL: <strong style={{ color: "var(--coral)" }}>{total.toFixed(2)} KM</strong>
           </div>
         </div>
       </div>
-      <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => setPage("home")}>
-        Back to Home
-      </button>
+      <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginTop: 24 }}>
+        <button className="btn-primary" onClick={() => setPage("order-history")}>
+          View Orders
+        </button>
+        <button className="btn-secondary" onClick={() => setPage("shop")}>
+          Continue Shopping
+        </button>
+      </div>
     </div>
   );
 }

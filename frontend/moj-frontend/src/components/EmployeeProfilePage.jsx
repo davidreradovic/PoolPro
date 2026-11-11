@@ -50,7 +50,7 @@ export function EmployeeProfilePage({ setPage }) {
         setEditing(false);
         setTimeout(() => setMessage(""), 3000);
       }
-    } catch (e) {
+    } catch {
       setMessage("Failed to update description");
     }
   };
@@ -146,7 +146,7 @@ export function EmployeeProfilePage({ setPage }) {
           <div className="profile-links">
             <button
               className="profile-link"
-              onClick={() => setPage("projects")}
+              onClick={() => setPage("employee-tasks")}
             >
               My Tasks
             </button>

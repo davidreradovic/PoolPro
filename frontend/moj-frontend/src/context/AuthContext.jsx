@@ -18,20 +18,44 @@ export function AuthProvider({ children }) {
       return null;
     }
   });
+  const [previewRole, setPreviewRoleState] = useState(null);
+
+  const effectiveUser =
+    user && user.role === "SUPERVISOR" && previewRole
+      ? { ...user, role: previewRole, actualRole: "SUPERVISOR" }
+      : user;
 
   const login = (u) => {
     const normalized = normalizeUser(u);
     setUser(normalized);
+    setPreviewRoleState(null);
     localStorage.setItem("poolpro_user", JSON.stringify(normalized));
   };
 
   const logout = () => {
     setUser(null);
+    setPreviewRoleState(null);
     localStorage.removeItem("poolpro_user");
   };
 
+  const setPreviewRole = (role) => {
+    if (user?.role !== "SUPERVISOR") return;
+    setPreviewRoleState(role === "SUPERVISOR" ? null : role);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user: effectiveUser,
+        realUser: user,
+        actualRole: user?.role || null,
+        effectiveRole: effectiveUser?.role || null,
+        previewRole,
+        setPreviewRole,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
