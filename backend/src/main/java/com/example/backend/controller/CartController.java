@@ -1,7 +1,9 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.AddToCartRequest;
 import com.example.backend.entity.*;
 import com.example.backend.repository.*;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,14 +36,10 @@ public class CartController {
     @PreAuthorize("hasRole('CLIENT')")
     public Object addItemToCart(
             @PathVariable Integer clientId,
-            @RequestBody Map<String, Object> request
+            @Valid @RequestBody AddToCartRequest request
     ) {
-        Integer itemId = (Integer) request.get("itemId");
-        Integer quantity = (Integer) request.get("quantity");
-
-        if (quantity == null || quantity <= 0) {
-            return "Quantity must be greater than 0";
-        }
+        Integer itemId = request.getItemId();
+        Integer quantity = request.getQuantity();
 
         Client client = clientRepository.findById(clientId).orElse(null);
         if (client == null) {
@@ -51,6 +49,10 @@ public class CartController {
         Item item = itemRepository.findById(itemId).orElse(null);
         if (item == null) {
             return "Item not found";
+        }
+
+        if (item.getQuantity() == null || item.getQuantity() <= 0) {
+            return "Item is out of stock";
         }
 
         Cart cart = cartRepository.findByClient_IdClient(clientId).orElse(null);
@@ -66,6 +68,12 @@ public class CartController {
         id.setIdItem(item.getIdItem());
 
         CartHasItem cartItem = cartHasItemRepository.findById(id).orElse(null);
+        int existingQuantity = cartItem == null ? 0 : cartItem.getQuantity();
+        int requestedQuantity = existingQuantity + quantity;
+
+        if (requestedQuantity > item.getQuantity()) {
+            return "Only " + item.getQuantity() + " items available";
+        }
 
         if (cartItem == null) {
             cartItem = new CartHasItem();
@@ -119,14 +127,10 @@ public class CartController {
     @PreAuthorize("hasRole('CLIENT')")
     public Object updateQuantity(
             @PathVariable Integer clientId,
-            @RequestBody Map<String, Object> request
+            @Valid @RequestBody AddToCartRequest request
     ) {
-        Integer itemId = (Integer) request.get("itemId");
-        Integer quantity = (Integer) request.get("quantity");
-
-        if (quantity == null || quantity <= 0) {
-            return "Quantity must be greater than 0";
-        }
+        Integer itemId = request.getItemId();
+        Integer quantity = request.getQuantity();
 
         Cart cart = cartRepository.findByClient_IdClient(clientId).orElse(null);
         if (cart == null) {
@@ -141,6 +145,15 @@ public class CartController {
 
         if (cartItem == null) {
             return "Item not found in cart";
+        }
+
+        Item item = itemRepository.findById(itemId).orElse(null);
+        if (item == null) {
+            return "Item not found";
+        }
+
+        if (quantity > item.getQuantity()) {
+            return "Only " + item.getQuantity() + " items available";
         }
 
         cartItem.setQuantity(quantity);

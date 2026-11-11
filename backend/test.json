@@ -1,0 +1,2080 @@
+{
+  "info": {
+    "name": "PoolPro API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Kompletna kolekcija testova za PoolPro backend API. Supervisor credentials: admin_supervisor / SupervisorSifra123!"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "supervisorToken", "value": "" },
+    { "key": "clientToken", "value": "" },
+    { "key": "employeeToken", "value": "" },
+    { "key": "supervisorUserId", "value": "" },
+    { "key": "supervisorId", "value": "1" },
+    { "key": "clientUserId", "value": "" },
+    { "key": "clientId", "value": "" },
+    { "key": "employeeUserId", "value": "" },
+    { "key": "employeeId", "value": "" },
+    { "key": "projectId", "value": "" },
+    { "key": "taskId", "value": "" },
+    { "key": "itemId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "messageId", "value": "" },
+    { "key": "itemCommentId", "value": "" },
+    { "key": "projectCommentId", "value": "" },
+    { "key": "taskCommentId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. AUTH",
+      "item": [
+        {
+          "name": "1.1 Login - Supervisor (admin_supervisor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Token postoji', () => pm.expect(json.token).to.be.a('string'));",
+                  "pm.test('Role je SUPERVISOR', () => pm.expect(json.role).to.eql('SUPERVISOR'));",
+                  "pm.collectionVariables.set('supervisorToken', json.token);",
+                  "pm.collectionVariables.set('supervisorUserId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin_supervisor\",\n  \"password\": \"SupervisorSifra123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.2 Login - Nepostojeći korisnik (treba 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"ne_postoji\",\n  \"password\": \"pogresna\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.3 Registracija klijenta (javna, bez tokena)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Poruka OK', () => pm.expect(pm.response.text()).to.include('successful'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_klijent\",\n  \"password\": \"Klijent123!\",\n  \"firstName\": \"Marko\",\n  \"lastName\": \"Markovic\",\n  \"email\": \"marko@test.com\",\n  \"phone\": \"065111222\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.4 Registracija klijenta - dupli username (treba 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_klijent\",\n  \"password\": \"Klijent123!\",\n  \"firstName\": \"Marko\",\n  \"lastName\": \"Markovic\",\n  \"email\": \"drugi@test.com\",\n  \"phone\": \"065111222\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.5 Login - Klijent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Role je CLIENT', () => pm.expect(json.role).to.eql('CLIENT'));",
+                  "pm.collectionVariables.set('clientToken', json.token);",
+                  "pm.collectionVariables.set('clientUserId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_klijent\",\n  \"password\": \"Klijent123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.6 Registracija radnika - Supervisor prijavljen (treba 200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Poruka OK', () => pm.expect(pm.response.text()).to.include('Employee registered'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/auth/register-employee",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_radnik\",\n  \"password\": \"Radnik123!\",\n  \"firstName\": \"Petar\",\n  \"lastName\": \"Petrovic\",\n  \"email\": \"petar@test.com\",\n  \"phone\": \"065333444\",\n  \"description\": \"Iskusan vodoinstalater\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.7 Registracija radnika - BEZ tokena (treba 401/403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 ili 403', () => {",
+                  "  pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register-employee",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"neko_drugi\",\n  \"password\": \"Lozinka123!\",\n  \"firstName\": \"Neko\",\n  \"lastName\": \"Drugi\",\n  \"email\": \"neko@test.com\",\n  \"phone\": \"065999000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.8 Registracija radnika - Token KLIJENTA (treba 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/auth/register-employee",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"neko_drugi2\",\n  \"password\": \"Lozinka123!\",\n  \"firstName\": \"Neko\",\n  \"lastName\": \"Drugi\",\n  \"email\": \"neko2@test.com\",\n  \"phone\": \"065999001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.9 Login - Radnik",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Role je EMPLOYEE', () => pm.expect(json.role).to.eql('EMPLOYEE'));",
+                  "pm.collectionVariables.set('employeeToken', json.token);",
+                  "pm.collectionVariables.set('employeeUserId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_radnik\",\n  \"password\": \"Radnik123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.10 Promjena lozinke - prijavljen korisnik",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/auth/change-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"Klijent123!\",\n  \"newPassword\": \"NovaLozinka456!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.11 Promjena lozinke - pogresna stara lozinka (treba 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/auth/change-password",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"POGRESNA\",\n  \"newPassword\": \"NovaLozinka456!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.12 Registracija supervisora - Supervisor prijavljen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/auth/register-supervisor",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_supervisor2\",\n  \"password\": \"Super123!\",\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Anic\",\n  \"email\": \"ana@test.com\",\n  \"phone\": \"065555666\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. KORISNICI (Users)",
+      "item": [
+        {
+          "name": "2.1 Dohvati sve korisnike - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Lista korisnika', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/users"
+          }
+        },
+        {
+          "name": "2.2 Dohvati sve korisnike - BEZ tokena (treba 401/403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 ili 403', () => {",
+                  "  pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users"
+          }
+        },
+        {
+          "name": "2.3 Aktiviraj korisnika - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/users/{{clientUserId}}/activate"
+          }
+        },
+        {
+          "name": "2.4 Deaktiviraj korisnika - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/users/{{clientUserId}}/deactivate"
+          }
+        },
+        {
+          "name": "2.5 Deaktiviraj sopstveni nalog - Supervisor (treba 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Poruka o zabrani', () => pm.expect(pm.response.text()).to.include('cannot deactivate'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/users/{{supervisorUserId}}/deactivate"
+          }
+        },
+        {
+          "name": "2.6 Aktiviraj/deaktiviraj - Token klijenta (treba 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/users/{{clientUserId}}/activate"
+          }
+        },
+        {
+          "name": "2.7 Login deaktiviranog korisnika (treba 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_klijent\",\n  \"password\": \"NovaLozinka456!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.8 Ponovo aktiviraj klijenta (za dalje testove)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/users/{{clientUserId}}/activate"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. RADNICI (Employees)",
+      "item": [
+        {
+          "name": "3.1 Dohvati sve radnike (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Lista radnika', () => pm.expect(json).to.be.an('array'));",
+                  "if (json.length > 0) {",
+                  "  pm.collectionVariables.set('employeeId', json[0].idEmployee);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/employees"
+          }
+        },
+        {
+          "name": "3.2 Dohvati radnika po ID-u",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 ili string odgovor', () => {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}"
+          }
+        },
+        {
+          "name": "3.3 Dohvati radnika po User ID-u",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/employees/user/{{employeeUserId}}"
+          }
+        },
+        {
+          "name": "3.4 Ažuriraj opis radnika",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}/description?description=Senior vodoinstalater",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{employeeId}}", "description"],
+              "query": [{ "key": "description", "value": "Senior vodoinstalater" }]
+            }
+          }
+        },
+        {
+          "name": "3.5 Ažuriraj status radnika (inactive)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}/status?status=inactive",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{employeeId}}", "status"],
+              "query": [{ "key": "status", "value": "inactive" }]
+            }
+          }
+        },
+        {
+          "name": "3.6 Ažuriraj status radnika (active)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}/status?status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "{{employeeId}}", "status"],
+              "query": [{ "key": "status", "value": "active" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. PROJEKTI (Projects)",
+      "item": [
+        {
+          "name": "4.1 Kreiraj projekat - Supervisor prijavljen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Projekat kreiran', () => pm.expect(json.idProject).to.exist);",
+                  "pm.collectionVariables.set('projectId', json.idProject);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/projects",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Izgradnja bazena\",\n  \"description\": \"Olimpijski bazen u dvorištu\",\n  \"idClient\": {{clientId}},\n  \"idSupervisor\": {{supervisorId}},\n  \"publicProject\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "4.2 Kreiraj projekat - BEZ tokena (treba 401/403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 ili 403', () => {",
+                  "  pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/projects",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Neovlašten projekat\",\n  \"description\": \"Ovo ne treba raditi\",\n  \"idClient\": 1,\n  \"idSupervisor\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "4.3 Dohvati sve projekte (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Lista projekata', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/projects"
+          }
+        },
+        {
+          "name": "4.4 Dohvati projekat po ID-u",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Projekat postoji', () => pm.expect(pm.response.json().idProject).to.exist);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/projects/{{projectId}}"
+          }
+        },
+        {
+          "name": "4.5 Dohvati projekte po klijentu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/projects/client/{{clientId}}"
+          }
+        },
+        {
+          "name": "4.6 Ažuriraj status projekta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{projectId}}/status?status=in_progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{projectId}}", "status"],
+              "query": [{ "key": "status", "value": "in_progress" }]
+            }
+          }
+        },
+        {
+          "name": "4.7 Dohvati taskove projekta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/projects/{{projectId}}/tasks"
+          }
+        },
+        {
+          "name": "4.8 Obriši projekat - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Samo provjera statusa - projekat se ne briše ako ima taskove",
+                  "pm.test('Status 200 ili poruka', () => {",
+                  "  pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/projects/99999"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. TASKOVI (Tasks)",
+      "item": [
+        {
+          "name": "5.1 Kreiraj task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Task kreiran', () => pm.expect(json.idTask).to.exist);",
+                  "pm.collectionVariables.set('taskId', json.idTask);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/tasks",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Iskopati rupu\",\n  \"description\": \"Iskopati rupu za bazen\",\n  \"idProject\": {{projectId}},\n  \"deadline\": \"2025-12-31\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5.2 Dohvati sve taskove",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Lista taskova', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/tasks"
+          }
+        },
+        {
+          "name": "5.3 Dohvati task po ID-u",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/tasks/{{taskId}}"
+          }
+        },
+        {
+          "name": "5.4 Dohvati taskove po projektu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/tasks/project/{{projectId}}"
+          }
+        },
+        {
+          "name": "5.5 Dodijeli task radniku - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/tasks/{{taskId}}/assign/{{employeeId}}"
+          }
+        },
+        {
+          "name": "5.6 Dodijeli task radniku - Token klijenta (treba 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/tasks/{{taskId}}/assign/{{employeeId}}"
+          }
+        },
+        {
+          "name": "5.7 Dohvati taskove po radniku",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/tasks/employee/{{employeeId}}"
+          }
+        },
+        {
+          "name": "5.8 Ažuriraj status taska - Employee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{employeeToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}/status?status=in_progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}", "status"],
+              "query": [{ "key": "status", "value": "in_progress" }]
+            }
+          }
+        },
+        {
+          "name": "5.9 Oduzmi task od radnika - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/tasks/{{taskId}}/unassign"
+          }
+        },
+        {
+          "name": "5.10 Obriši task - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/tasks/{{taskId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. ARTIKLI (Items)",
+      "item": [
+        {
+          "name": "6.1 Kreiraj artikal - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Artikal kreiran', () => pm.expect(json.idItem).to.exist);",
+                  "pm.collectionVariables.set('itemId', json.idItem);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Hlorid za bazen\",\n  \"quantity\": 100,\n  \"unitPrice\": 15.50,\n  \"category\": \"hemija\"\n}"
+            }
+          }
+        },
+        {
+          "name": "6.2 Kreiraj artikal - BEZ tokena (treba 401/403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 ili 403', () => {",
+                  "  pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Neovlašten artikal\",\n  \"quantity\": 1,\n  \"unitPrice\": 9.99,\n  \"category\": \"test\"\n}"
+            }
+          }
+        },
+        {
+          "name": "6.3 Dohvati sve artikle (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Lista artikala', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/items"
+          }
+        },
+        {
+          "name": "6.4 Dohvati artikal po ID-u",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/items/{{itemId}}"
+          }
+        },
+        {
+          "name": "6.5 Ažuriraj artikal - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/items/{{itemId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Hlorid za bazen - updated\",\n  \"quantity\": 200,\n  \"unitPrice\": 14.99,\n  \"category\": \"hemija\"\n}"
+            }
+          }
+        },
+        {
+          "name": "6.6 Obriši artikal - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Testiramo brisanje nepostojećeg da ne uništimo tok",
+                  "pm.test('Odgovor primljen', () => pm.response.to.exist);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/items/99999"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. KORPA (Cart)",
+      "item": [
+        {
+          "name": "7.1 Dodaj artikal u korpu - CLIENT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/cart/{{clientId}}/add",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"quantity\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "7.2 Dodaj artikal u korpu - BEZ tokena (treba 401/403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 ili 403', () => {",
+                  "  pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/cart/{{clientId}}/add",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"quantity\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "7.3 Dohvati korpu - CLIENT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Korpa ima stavke', () => pm.expect(pm.response.json().items).to.exist);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/cart/{{clientId}}"
+          }
+        },
+        {
+          "name": "7.4 Ažuriraj količinu u korpi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/cart/{{clientId}}/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"quantity\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "7.5 Ukloni artikal iz korpe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/cart/{{clientId}}/remove/{{itemId}}"
+          }
+        },
+        {
+          "name": "7.5b Dodaj ponovo za checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/cart/{{clientId}}/add",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"quantity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "7.6 Isprazni korpu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/cart/{{clientId}}/clear"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. NARUDŽBINE (Orders)",
+      "item": [
+        {
+          "name": "8.0 Pripremi korpu za checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/cart/{{clientId}}/add",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"quantity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "8.1 Checkout - CLIENT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Narudžbina kreirana', () => pm.expect(json.idOrder).to.exist);",
+                  "pm.collectionVariables.set('orderId', json.idOrder);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/orders/checkout/{{clientId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"Ulica Bazena 1, Bijeljina\"\n}"
+            }
+          }
+        },
+        {
+          "name": "8.2 Checkout - BEZ tokena (treba 401/403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 ili 403', () => {",
+                  "  pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/orders/checkout/{{clientId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"Neovlašćena adresa\"\n}"
+            }
+          }
+        },
+        {
+          "name": "8.3 Dohvati sve narudžbine - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Lista narudžbina', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "8.4 Dohvati narudžbinu po ID-u",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "8.5 Dohvati narudžbine po klijentu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/orders/client/{{clientId}}"
+          }
+        },
+        {
+          "name": "8.6 Ažuriraj status narudžbine - Supervisor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}/status?status=confirmed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "orders", "{{orderId}}", "status"],
+              "query": [{ "key": "status", "value": "confirmed" }]
+            }
+          }
+        },
+        {
+          "name": "8.7 Kreiraj pritužbu na narudžbinu - CLIENT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/complaints",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Kasna dostava, nisam zadovoljan\"\n}"
+            }
+          }
+        },
+        {
+          "name": "8.8 Dohvati pritužbe narudžbine",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/complaints"
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. RECENZIJE (Reviews)",
+      "item": [
+        {
+          "name": "9.1 Kreiraj recenziju - CLIENT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": {{clientId}},\n  \"itemId\": {{itemId}},\n  \"review\": 4.5,\n  \"description\": \"Odličan hlorid!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "9.2 Dupla recenzija (treba odbiti)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Odgovor postoji', () => pm.response.to.exist);",
+                  "pm.test('Review already exists poruka ili 200', () => {",
+                  "  pm.expect(pm.response.text()).to.include('already exists');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": {{clientId}},\n  \"itemId\": {{itemId}},\n  \"review\": 2.0,\n  \"description\": \"Dupla recenzija\"\n}"
+            }
+          }
+        },
+        {
+          "name": "9.3 Dohvati recenzije artikla (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/reviews/item/{{itemId}}"
+          }
+        },
+        {
+          "name": "9.4 Dohvati recenzije klijenta - CLIENT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": "{{baseUrl}}/api/reviews/client/{{clientId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. PORUKE (Messages)",
+      "item": [
+        {
+          "name": "10.1 Pošalji poruku (CLIENT -> SUPERVISOR)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Poruka poslana', () => pm.expect(json.idMessage).to.exist);",
+                  "pm.collectionVariables.set('messageId', json.idMessage);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/messages",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": {{supervisorUserId}},\n  \"content\": \"Pozdrav, kada stižu moje narudžbine?\"\n}"
+            }
+          }
+        },
+        {
+          "name": "10.2 Pošalji poruku - CLIENT na CLIENT (treba odbiti)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Odbijeno', () => {",
+                  "  const body = pm.response.text();",
+                  "  pm.expect(body).to.include('allowed only between client and supervisor');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/messages",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": {{clientUserId}},\n  \"content\": \"Poruka sebi, ne treba biti dozvoljena\"\n}"
+            }
+          }
+        },
+        {
+          "name": "10.3 Dohvati konverzaciju",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{clientToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/conversation?user1Id={{clientUserId}}&user2Id={{supervisorUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "messages", "conversation"],
+              "query": [
+                { "key": "user1Id", "value": "{{clientUserId}}" },
+                { "key": "user2Id", "value": "{{supervisorUserId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "10.4 Dohvati nepročitane poruke",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/messages/unread/{{supervisorUserId}}"
+          }
+        },
+        {
+          "name": "10.5 Označi poruku kao pročitanu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{supervisorToken}}" }],
+            "url": "{{baseUrl}}/api/messages/{{messageId}}/read"
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. KOMENTARI NA ARTIKLIMA",
+      "item": [
+        {
+          "name": "11.1 Dodaj komentar na artikal - prijavljen korisnik",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('itemCommentId', json.idItemComment);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/item-comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"content\": \"Odličan proizvod!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "11.2 Odgovori na komentar (reply)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/item-comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"content\": \"Hvala na komentaru!\",\n  \"replyId\": {{itemCommentId}}\n}"
+            }
+          }
+        },
+        {
+          "name": "11.3 Dohvati komentare artikla (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/item-comments/item/{{itemId}}"
+          }
+        },
+        {
+          "name": "11.4 Komentar bez tokena (treba 401/403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 ili 403', () => {",
+                  "  pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/item-comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"content\": \"Anoniman komentar\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. KOMENTARI NA PROJEKTIMA",
+      "item": [
+        {
+          "name": "12.1 Dodaj komentar na projekat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('projectCommentId', json.idProjectComment);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/project-comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": {{projectId}},\n  \"content\": \"Kada krece radovi?\"\n}"
+            }
+          }
+        },
+        {
+          "name": "12.2 Odgovori na komentar projekta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/project-comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": {{projectId}},\n  \"content\": \"Radovi krecu sledece sedmice!\",\n  \"replyId\": {{projectCommentId}}\n}"
+            }
+          }
+        },
+        {
+          "name": "12.3 Dohvati komentare projekta (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/project-comments/project/{{projectId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. KOMENTARI NA TASKOVIMA",
+      "item": [
+        {
+          "name": "13.0 Kreiraj novi task za komentare",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('taskId', pm.response.json().idTask);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/tasks",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Task za komentare\",\n  \"description\": \"Test task\",\n  \"idProject\": {{projectId}},\n  \"deadline\": \"2025-12-31\"\n}"
+            }
+          }
+        },
+        {
+          "name": "13.1 Dodaj komentar na task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('taskCommentId', json.idTaskComment);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/task-comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": {{taskId}},\n  \"content\": \"Poceo sam sa kopanjem\"\n}"
+            }
+          }
+        },
+        {
+          "name": "13.2 Odgovori na komentar taska",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/task-comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": {{taskId}},\n  \"content\": \"Dobro, nastavi!\",\n  \"replyId\": {{taskCommentId}}\n}"
+            }
+          }
+        },
+        {
+          "name": "13.3 Dohvati komentare taska (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/task-comments/task/{{taskId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "14. FOTOGRAFIJE (Photos)",
+      "item": [
+        {
+          "name": "14.1 Dodaj foto na task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{employeeToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/photos/task/{{taskId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"img\": \"data:image/png;base64,iVBORw0KGgoAAAANS...\"\n}"
+            }
+          }
+        },
+        {
+          "name": "14.2 Dohvati fotke taska (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/photos/task/{{taskId}}"
+          }
+        },
+        {
+          "name": "14.3 Dodaj foto na artikal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{supervisorToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/photos/item",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"img\": \"data:image/png;base64,iVBORw0KGgo...\",\n  \"title\": \"Glavna slika\"\n}"
+            }
+          }
+        },
+        {
+          "name": "14.4 Dohvati fotke artikla (javno)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/photos/item/{{itemId}}"
+          }
+        },
+        {
+          "name": "14.5 Dodaj foto na artikal (item-photos ruta)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{clientToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/item-photos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": {{itemId}},\n  \"img\": \"data:image/png;base64,abc123\",\n  \"title\": \"Dodatna slika\"\n}"
+            }
+          }
+        },
+        {
+          "name": "14.6 Dohvati fotke artikla (item-photos ruta)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/item-photos/item/{{itemId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

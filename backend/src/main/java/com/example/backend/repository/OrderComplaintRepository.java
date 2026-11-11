@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface OrderComplaintRepository extends JpaRepository<OrderComplaint, Integer> {
     List<OrderComplaint> findByOrder_IdOrder(Integer idOrder);
+
+    List<OrderComplaint> findAllByOrderByTimestampDesc();
 }
